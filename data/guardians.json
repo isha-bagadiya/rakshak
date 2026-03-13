@@ -8,5 +8,12 @@
   "69b0f64dafca3a5fe7d7f80956d325aa": {
     "guardians": [],
     "threshold": 0
+  },
+  "69b306a545cd8974a529ebf254fdb133": {
+    "guardians": [
+      "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+      "0x7765c41D3594b034e3D1E0742386844d46e9E496"
+    ],
+    "threshold": 2
   }
 }

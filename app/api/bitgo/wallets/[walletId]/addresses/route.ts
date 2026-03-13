@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getBitGo, getDefaultCoin, isAllowedCoin } from '@/lib/bitgo';
 import { toUserMessage } from '@/lib/bitgoErrors';
+import { getRequestIdentity } from '@/lib/requestIdentity';
+import { isWalletOwnedBy } from '@/lib/walletOwnersDb';
 
 type BitGo = Awaited<ReturnType<typeof getBitGo>>;
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ walletId: string }> },
 ) {
   try {
+    const identity = getRequestIdentity(request);
+    if (!identity) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please sign in again.' },
+        { status: 401 },
+      );
+    }
+
     const { walletId } = await params;
     const id = typeof walletId === 'string' ? walletId.trim() : '';
 
@@ -19,7 +29,15 @@ export async function POST(
       );
     }
 
-    const body = await _request.json().catch(() => ({}));
+    const isAllowedOwner = await isWalletOwnedBy(id, identity.email);
+    if (!isAllowedOwner) {
+      return NextResponse.json(
+        { error: 'Forbidden. This wallet does not belong to the signed-in user.' },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
     const coin =
       typeof body.coin === 'string' ? body.coin.trim().toLowerCase() : getDefaultCoin();
 

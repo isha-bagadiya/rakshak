@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getBitGo, getDefaultCoin, isAllowedCoin } from '@/lib/bitgo';
 import { toUserMessage } from '@/lib/bitgoErrors';
+import { getRequestIdentity } from '@/lib/requestIdentity';
 import {
   addGuardian,
   listGuardians,
   removeGuardian,
   setThreshold,
 } from '@/lib/guardiansDb';
+import { isWalletOwnedBy } from '@/lib/walletOwnersDb';
 
 type BitGo = Awaited<ReturnType<typeof getBitGo>>;
 
@@ -28,6 +30,14 @@ export async function GET(
   { params }: { params: Promise<{ walletId: string }> },
 ) {
   try {
+    const identity = getRequestIdentity(request);
+    if (!identity) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please sign in again.' },
+        { status: 401 },
+      );
+    }
+
     const { walletId } = await params;
     const id = typeof walletId === 'string' ? walletId.trim() : '';
 
@@ -45,6 +55,13 @@ export async function GET(
       return NextResponse.json(
         { error: 'Invalid "coin" query. Only Base Ethereum Testnet (tbaseeth) is allowed.' },
         { status: 400 },
+      );
+    }
+    const isAllowedOwner = await isWalletOwnedBy(id, identity.email);
+    if (!isAllowedOwner) {
+      return NextResponse.json(
+        { error: 'Forbidden. This wallet does not belong to the signed-in user.' },
+        { status: 403 },
       );
     }
 
@@ -73,6 +90,14 @@ export async function POST(
   { params }: { params: Promise<{ walletId: string }> },
 ) {
   try {
+    const identity = getRequestIdentity(request);
+    if (!identity) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please sign in again.' },
+        { status: 401 },
+      );
+    }
+
     const { walletId } = await params;
     const id = typeof walletId === 'string' ? walletId.trim() : '';
 
@@ -99,6 +124,13 @@ export async function POST(
       return NextResponse.json(
         { error: 'Invalid "coin". Only Base Ethereum Testnet (tbaseeth) is allowed.' },
         { status: 400 },
+      );
+    }
+    const isAllowedOwner = await isWalletOwnedBy(id, identity.email);
+    if (!isAllowedOwner) {
+      return NextResponse.json(
+        { error: 'Forbidden. This wallet does not belong to the signed-in user.' },
+        { status: 403 },
       );
     }
 
@@ -127,6 +159,14 @@ export async function DELETE(
   { params }: { params: Promise<{ walletId: string }> },
 ) {
   try {
+    const identity = getRequestIdentity(request);
+    if (!identity) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please sign in again.' },
+        { status: 401 },
+      );
+    }
+
     const { walletId } = await params;
     const id = typeof walletId === 'string' ? walletId.trim() : '';
 
@@ -155,6 +195,13 @@ export async function DELETE(
         { status: 400 },
       );
     }
+    const isAllowedOwner = await isWalletOwnedBy(id, identity.email);
+    if (!isAllowedOwner) {
+      return NextResponse.json(
+        { error: 'Forbidden. This wallet does not belong to the signed-in user.' },
+        { status: 403 },
+      );
+    }
 
     const bitgo = await getBitGo();
     await ensureWalletExists(bitgo, coin, id);
@@ -181,6 +228,14 @@ export async function PATCH(
   { params }: { params: Promise<{ walletId: string }> },
 ) {
   try {
+    const identity = getRequestIdentity(request);
+    if (!identity) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please sign in again.' },
+        { status: 401 },
+      );
+    }
+
     const { walletId } = await params;
     const id = typeof walletId === 'string' ? walletId.trim() : '';
 
@@ -209,6 +264,13 @@ export async function PATCH(
       return NextResponse.json(
         { error: 'Invalid "coin". Only Base Ethereum Testnet (tbaseeth) is allowed.' },
         { status: 400 },
+      );
+    }
+    const isAllowedOwner = await isWalletOwnedBy(id, identity.email);
+    if (!isAllowedOwner) {
+      return NextResponse.json(
+        { error: 'Forbidden. This wallet does not belong to the signed-in user.' },
+        { status: 403 },
       );
     }
 

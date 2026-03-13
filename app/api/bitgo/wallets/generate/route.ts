@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getBitGo, getDefaultCoin, isAllowedCoin } from '@/lib/bitgo';
 import { toUserMessage } from '@/lib/bitgoErrors';
+import { getRequestIdentity } from '@/lib/requestIdentity';
+import { setWalletOwner } from '@/lib/walletOwnersDb';
 
 const LABEL_MAX_LENGTH = 256;
 
@@ -8,6 +10,16 @@ type BitGo = Awaited<ReturnType<typeof getBitGo>>;
 
 /** Coins that require TSS/MPC keys (e.g. Base). Independent keys not supported. */
 const TSS_COINS = ['tbaseeth', 'baseeth'];
+
+function getWalletIdFromResult(result: { wallet: unknown }): string | null {
+  const wallet = result.wallet;
+  if (!wallet || typeof wallet !== 'object') {
+    return null;
+  }
+
+  const maybeId = (wallet as { id?: unknown }).id;
+  return typeof maybeId === 'string' && maybeId.trim() ? maybeId : null;
+}
 
 /** TSS flow for Base: create MPC keys via SDK then add wallet (multisigType: tss). */
 async function createWalletTSS(
@@ -121,6 +133,14 @@ async function createWalletWithKeychainsServer(
 
 export async function POST(request: Request) {
   try {
+    const identity = getRequestIdentity(request);
+    if (!identity) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please sign in again.' },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const label = typeof body.label === 'string' ? body.label.trim() : '';
     const coin = typeof body.coin === 'string' ? body.coin.trim().toLowerCase() : getDefaultCoin();
@@ -164,6 +184,10 @@ export async function POST(request: Request) {
     const result = TSS_COINS.includes(coin)
       ? await createWalletTSS(bitgo, coin, { label, passphrase, enterprise })
       : await createWalletWithKeychainsServer(bitgo, coin, { label, passphrase, enterprise });
+    const walletId = getWalletIdFromResult(result);
+    if (walletId) {
+      await setWalletOwner(walletId, identity.email);
+    }
 
     return NextResponse.json({
       ...result,

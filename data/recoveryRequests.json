@@ -1,0 +1,18 @@
+{
+  "69b306a545cd8974a529ebf254fdb133": [
+    {
+      "id": "43395a11-9f13-42cf-809e-89695362daee",
+      "walletId": "69b306a545cd8974a529ebf254fdb133",
+      "reason": "lost key",
+      "guardians": [
+        "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "0x7765c41D3594b034e3D1E0742386844d46e9E496"
+      ],
+      "threshold": 2,
+      "approvals": [],
+      "status": "pending",
+      "createdAt": "2026-03-12T19:25:00.039Z",
+      "updatedAt": "2026-03-12T19:25:00.039Z"
+    }
+  ]
+}

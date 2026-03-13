@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 
 /** Base Ethereum Testnet only (BitGo: tbaseeth). */
 const COIN = "tbaseeth";
 
-const LAST_WALLET_KEY = "catchup_last_wallet_id";
+const LAST_WALLET_KEY_PREFIX = "catchup_last_wallet_id";
 
 type WalletItem = {
   id: string;
@@ -21,6 +21,23 @@ type GuardiansState = {
 
 export default function Home() {
   const { ready, authenticated, user, login, logout } = usePrivy();
+  const currentUserEmail = user?.email?.address?.trim().toLowerCase() ?? "";
+
+  const authHeaders = useCallback((extra?: Record<string, string>): Record<string, string> => {
+    const base: Record<string, string> = {};
+    if (currentUserEmail) {
+      base["x-user-email"] = currentUserEmail;
+    }
+
+    if (!extra) return base;
+    return { ...base, ...extra };
+  }, [currentUserEmail]);
+
+  const getLastWalletStorageKey = useCallback((): string => {
+    return currentUserEmail
+      ? `${LAST_WALLET_KEY_PREFIX}:${currentUserEmail}`
+      : LAST_WALLET_KEY_PREFIX;
+  }, [currentUserEmail]);
 
   const [label, setLabel] = useState("");
   const [generateResult, setGenerateResult] = useState<unknown>(null);
@@ -55,7 +72,9 @@ export default function Home() {
     let cancelled = false;
     setWalletsLoading(true);
     setWalletsError(null);
-    fetch(`/api/bitgo/wallets?coin=${encodeURIComponent(COIN)}`)
+    fetch(`/api/bitgo/wallets?coin=${encodeURIComponent(COIN)}`, {
+      headers: authHeaders(),
+    })
       .then((res) => res.json().catch(() => ({})))
       .then((data) => {
         if (cancelled) return;
@@ -79,7 +98,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [ready, authenticated]);
+  }, [ready, authenticated, currentUserEmail, authHeaders]);
 
   useEffect(() => {
     if (!authenticated) return;
@@ -91,9 +110,9 @@ export default function Home() {
     );
     Promise.all(
       ids.map((id) =>
-        fetch(
-          `/api/bitgo/wallets/${encodeURIComponent(id)}/guardians?coin=${encodeURIComponent(COIN)}`,
-        )
+        fetch(`/api/bitgo/wallets/${encodeURIComponent(id)}/guardians?coin=${encodeURIComponent(COIN)}`, {
+          headers: authHeaders(),
+        })
           .then((res) => res.json().catch(() => ({})))
           .then((data) => {
             if (cancelled) return { id, data: null };
@@ -116,17 +135,17 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [walletsList, authenticated]);
+  }, [walletsList, authenticated, currentUserEmail, authHeaders]);
 
   useEffect(() => {
     if (!authenticated) return;
     if (typeof window === "undefined") return;
-    const saved = localStorage.getItem(LAST_WALLET_KEY);
+    const saved = localStorage.getItem(getLastWalletStorageKey());
     if (saved && saved.trim()) {
       setAddrWalletId(saved);
       setGuardianWalletId(saved);
     }
-  }, [authenticated]);
+  }, [authenticated, currentUserEmail, getLastWalletStorageKey]);
 
   function selectWallet(id: string) {
     const tid = id.trim();
@@ -134,7 +153,7 @@ export default function Home() {
     setAddrWalletId(tid);
     setGuardianWalletId(tid);
     if (typeof window !== "undefined") {
-      localStorage.setItem(LAST_WALLET_KEY, tid);
+      localStorage.setItem(getLastWalletStorageKey(), tid);
     }
   }
 
@@ -146,7 +165,7 @@ export default function Home() {
     try {
       const res = await fetch("/api/bitgo/wallets/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ label: label.trim() || "My Wallet", coin: COIN }),
       });
       const data = await res.json().catch(() => ({}));
@@ -218,7 +237,7 @@ export default function Home() {
         `/api/bitgo/wallets/${encodeURIComponent(id)}/guardians`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ address, coin: COIN }),
         },
       );
@@ -256,7 +275,7 @@ export default function Home() {
         `/api/bitgo/wallets/${encodeURIComponent(id)}/guardians`,
         {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ address, coin: COIN }),
         },
       );
@@ -300,7 +319,7 @@ export default function Home() {
         `/api/bitgo/wallets/${encodeURIComponent(id)}/guardians`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ threshold, coin: COIN }),
         },
       );
@@ -337,7 +356,7 @@ export default function Home() {
     try {
       const res = await fetch(`/api/bitgo/wallets/${encodeURIComponent(id)}/addresses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ coin: COIN }),
       });
       const data = await res.json().catch(() => ({}));
