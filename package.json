@@ -11,6 +11,7 @@
   "dependencies": {
     "@bitgo/sdk-api": "^1.75.3",
     "@bitgo/sdk-coin-eth": "^25.6.5",
+    "@privy-io/react-auth": "latest",
     "axios": "^1.13.6",
     "cuid": "^3.0.0",
     "dotenv": "^17.3.1",
@@ -30,6 +31,6 @@
     "eslint-config-next": "16.1.6",
     "prisma": "^7.4.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "5.9.3"
   }
 }

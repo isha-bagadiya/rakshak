@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePrivy } from "@privy-io/react-auth";
 
 /** Base Ethereum Testnet only (BitGo: tbaseeth). */
 const COIN = "tbaseeth";
@@ -19,6 +20,8 @@ type GuardiansState = {
 };
 
 export default function Home() {
+  const { ready, authenticated, user, login, logout } = usePrivy();
+
   const [label, setLabel] = useState("");
   const [generateResult, setGenerateResult] = useState<unknown>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
@@ -44,6 +47,11 @@ export default function Home() {
   >({});
 
   useEffect(() => {
+    if (!ready || !authenticated) {
+      setWalletsList([]);
+      setWalletsLoading(false);
+      return;
+    }
     let cancelled = false;
     setWalletsLoading(true);
     setWalletsError(null);
@@ -71,9 +79,10 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [ready, authenticated]);
 
   useEffect(() => {
+    if (!authenticated) return;
     if (walletsList.length === 0) return;
     let cancelled = false;
     const ids = walletsList.map((w) => w.id);
@@ -107,16 +116,17 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [walletsList]);
+  }, [walletsList, authenticated]);
 
   useEffect(() => {
+    if (!authenticated) return;
     if (typeof window === "undefined") return;
     const saved = localStorage.getItem(LAST_WALLET_KEY);
     if (saved && saved.trim()) {
       setAddrWalletId(saved);
       setGuardianWalletId(saved);
     }
-  }, []);
+  }, [authenticated]);
 
   function selectWallet(id: string) {
     const tid = id.trim();
@@ -347,9 +357,56 @@ export default function Home() {
     ? (generateResult as { wallet?: { id?: string; label?: string; receiveAddress?: { address?: string }; coin?: string } }).wallet
     : null;
 
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
+        <main className="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-4 py-12 text-zinc-900 dark:text-zinc-100">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading authentication...</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
+        <main className="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-4 py-12 text-zinc-900 dark:text-zinc-100">
+          <section className="w-full rounded-lg border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900">
+            <h1 className="mb-2 text-2xl font-semibold tracking-tight">Sign in to continue</h1>
+            <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+              Authenticate with Privy to access your BitGo wallet dashboard.
+            </p>
+            <button
+              type="button"
+              onClick={login}
+              className="rounded bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              Sign in
+            </button>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <main className="mx-auto max-w-2xl px-4 py-12 text-zinc-900 dark:text-zinc-100">
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="truncate text-zinc-600 dark:text-zinc-300">
+            Signed in as{" "}
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {user?.email?.address ?? user?.id ?? "Privy user"}
+            </span>
+          </p>
+          <button
+            type="button"
+            onClick={logout}
+            className="rounded bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            Sign out
+          </button>
+        </div>
         <h1 className="mb-2 text-2xl font-semibold tracking-tight">
           BitGo Self-Custody Multisig Hot (Simple)
         </h1>

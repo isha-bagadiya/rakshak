@@ -20,6 +20,26 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Privy Authentication Setup
+
+1. Create a Privy app in the [Privy dashboard](https://dashboard.privy.io/) and copy:
+   - `App ID`
+   - `Client ID` (if enabled for your app)
+2. Add these to your env file:
+
+   ```bash
+   NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+   NEXT_PUBLIC_PRIVY_CLIENT_ID=your_privy_client_id
+   ```
+
+3. Install the SDK:
+
+   ```bash
+   npm install @privy-io/react-auth
+   ```
+
+The app now requires Privy sign-in before showing the existing BitGo wallet and guardian flows.
+
 ## BitGo Testnet Setup
 
 1. Create a BitGo test account at [https://app.bitgo-test.com](https://app.bitgo-test.com) (OTP in test is `0000000`).
