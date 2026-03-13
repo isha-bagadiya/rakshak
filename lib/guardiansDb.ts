@@ -14,6 +14,8 @@ type GuardiansDb = Record<string, GuardianConfig>;
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_PATH = path.join(DATA_DIR, 'guardians.json');
+const MAX_GUARDIANS_PER_WALLET = 3;
+const REQUIRED_RECOVERY_THRESHOLD = 2;
 
 async function ensureDataDir() {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -44,6 +46,20 @@ function normalizeAddress(address: string): string {
   return address.trim().toLowerCase();
 }
 
+function isValidEvmAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(address.trim());
+}
+
+function requiredThresholdForCount(guardiansCount: number): number {
+  if (guardiansCount <= 0) {
+    return 0;
+  }
+  if (guardiansCount < REQUIRED_RECOVERY_THRESHOLD) {
+    return guardiansCount;
+  }
+  return REQUIRED_RECOVERY_THRESHOLD;
+}
+
 export async function getGuardianConfig(walletId: string): Promise<GuardianConfig | null> {
   const id = walletId.trim();
   if (!id) return null;
@@ -62,6 +78,12 @@ export async function listGuardians(walletId: string): Promise<GuardianConfig> {
   const existing = db[id];
 
   if (existing) {
+    const expectedThreshold = requiredThresholdForCount(existing.guardians.length);
+    if (existing.threshold !== expectedThreshold) {
+      existing.threshold = expectedThreshold;
+      db[id] = existing;
+      await writeFileSafe(db);
+    }
     return existing;
   }
 
@@ -84,6 +106,9 @@ export async function addGuardian(walletId: string, address: string): Promise<Gu
   if (!rawAddress) {
     throw new Error('Guardian address is required');
   }
+  if (!isValidEvmAddress(rawAddress)) {
+    throw new Error('Guardian address must be a valid EVM address');
+  }
 
   const db = await readFileSafe();
   const current: GuardianConfig =
@@ -94,14 +119,17 @@ export async function addGuardian(walletId: string, address: string): Promise<Gu
 
   const normalized = normalizeAddress(rawAddress);
   const existing = current.guardians.map(normalizeAddress);
+  const alreadyExists = existing.includes(normalized);
 
-  if (!existing.includes(normalized)) {
+  if (!alreadyExists && current.guardians.length >= MAX_GUARDIANS_PER_WALLET) {
+    throw new Error(`A wallet can only have up to ${MAX_GUARDIANS_PER_WALLET} guardians`);
+  }
+
+  if (!alreadyExists) {
     current.guardians.push(rawAddress);
   }
 
-  if (current.threshold > current.guardians.length) {
-    current.threshold = current.guardians.length;
-  }
+  current.threshold = requiredThresholdForCount(current.guardians.length);
 
   db[id] = current;
   await writeFileSafe(db);
@@ -129,9 +157,7 @@ export async function removeGuardian(walletId: string, address: string): Promise
   const normalized = normalizeAddress(rawAddress);
   current.guardians = current.guardians.filter((addr) => normalizeAddress(addr) !== normalized);
 
-  if (current.threshold > current.guardians.length) {
-    current.threshold = current.guardians.length;
-  }
+  current.threshold = requiredThresholdForCount(current.guardians.length);
 
   db[id] = current;
   await writeFileSafe(db);
@@ -147,10 +173,6 @@ export async function setThreshold(walletId: string, threshold: number): Promise
   if (!Number.isInteger(threshold)) {
     throw new Error('Threshold must be an integer');
   }
-  if (threshold < 0) {
-    throw new Error('Threshold cannot be negative');
-  }
-
   const db = await readFileSafe();
   const current: GuardianConfig =
     db[id] ?? {
@@ -158,17 +180,15 @@ export async function setThreshold(walletId: string, threshold: number): Promise
       threshold: 0,
     };
 
-  if (threshold === 0 && current.guardians.length === 0) {
-    current.threshold = 0;
-  } else {
-    if (threshold < 1) {
-      throw new Error('Threshold must be at least 1 when guardians exist');
-    }
-    if (threshold > current.guardians.length) {
-      throw new Error('Threshold cannot be greater than number of guardians');
-    }
-    current.threshold = threshold;
+  const expectedThreshold = requiredThresholdForCount(current.guardians.length);
+  if (threshold !== expectedThreshold) {
+    const hint =
+      expectedThreshold === REQUIRED_RECOVERY_THRESHOLD
+        ? `${REQUIRED_RECOVERY_THRESHOLD} (mandatory)`
+        : String(expectedThreshold);
+    throw new Error(`Threshold is fixed at ${hint} for the current number of guardians`);
   }
+  current.threshold = expectedThreshold;
 
   db[id] = current;
   await writeFileSafe(db);

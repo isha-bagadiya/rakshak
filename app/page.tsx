@@ -5,6 +5,7 @@ import { usePrivy } from "@privy-io/react-auth";
 
 /** Base Ethereum Testnet only (BitGo: tbaseeth). */
 const COIN = "tbaseeth";
+const MAX_GUARDIANS = 3;
 
 const LAST_WALLET_KEY_PREFIX = "catchup_last_wallet_id";
 
@@ -52,7 +53,6 @@ export default function Home() {
   const [guardianWalletId, setGuardianWalletId] = useState("");
   const [guardiansState, setGuardiansState] = useState<GuardiansState | null>(null);
   const [guardianAddressInput, setGuardianAddressInput] = useState("");
-  const [guardianThresholdInput, setGuardianThresholdInput] = useState("");
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState<string | null>(null);
 
@@ -200,6 +200,9 @@ export default function Home() {
         `/api/bitgo/wallets/${encodeURIComponent(id)}/guardians?coin=${encodeURIComponent(
           COIN,
         )}`,
+        {
+          headers: authHeaders(),
+        },
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -210,7 +213,6 @@ export default function Home() {
       const threshold = (data as { threshold?: number }).threshold ?? 0;
       setGuardiansState({ guardians, threshold });
       setGuardiansByWalletId((prev) => ({ ...prev, [id]: { guardians, threshold } }));
-      setGuardianThresholdInput(threshold > 0 ? String(threshold) : "");
     } catch (err) {
       setGuardianError(err instanceof Error ? err.message : "Network or unknown error");
     } finally {
@@ -228,6 +230,10 @@ export default function Home() {
     }
     if (!address) {
       setGuardianError("Enter a guardian address.");
+      return;
+    }
+    if ((guardiansState?.guardians.length ?? 0) >= MAX_GUARDIANS) {
+      setGuardianError(`You can add only ${MAX_GUARDIANS} guardians per wallet.`);
       return;
     }
     setGuardianError(null);
@@ -251,7 +257,6 @@ export default function Home() {
       setGuardiansState({ guardians, threshold });
       setGuardiansByWalletId((prev) => ({ ...prev, [id]: { guardians, threshold } }));
       setGuardianAddressInput("");
-      setGuardianThresholdInput(threshold > 0 ? String(threshold) : "");
     } catch (err) {
       setGuardianError(err instanceof Error ? err.message : "Network or unknown error");
     } finally {
@@ -288,54 +293,6 @@ export default function Home() {
       const threshold = (data as { threshold?: number }).threshold ?? 0;
       setGuardiansState({ guardians, threshold });
       setGuardiansByWalletId((prev) => ({ ...prev, [id]: { guardians, threshold } }));
-      setGuardianThresholdInput(threshold > 0 ? String(threshold) : "");
-    } catch (err) {
-      setGuardianError(err instanceof Error ? err.message : "Network or unknown error");
-    } finally {
-      setGuardianLoading(false);
-    }
-  }
-
-  async function handleUpdateThreshold(e: React.FormEvent) {
-    e.preventDefault();
-    const id = guardianWalletId.trim();
-    if (!id) {
-      setGuardianError("Enter a wallet ID first.");
-      return;
-    }
-    if (!guardianThresholdInput.trim()) {
-      setGuardianError("Enter a threshold (e.g. 2 for 2-of-3).");
-      return;
-    }
-    const threshold = Number(guardianThresholdInput.trim());
-    if (!Number.isFinite(threshold)) {
-      setGuardianError("Threshold must be a number.");
-      return;
-    }
-    setGuardianError(null);
-    setGuardianLoading(true);
-    try {
-      const res = await fetch(
-        `/api/bitgo/wallets/${encodeURIComponent(id)}/guardians`,
-        {
-          method: "PATCH",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ threshold, coin: COIN }),
-        },
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setGuardianError(data?.error ?? `Request failed: ${res.status}`);
-        return;
-      }
-      const guardians = (data as { guardians?: string[] }).guardians ?? [];
-      const newThreshold = (data as { threshold?: number }).threshold ?? 0;
-      setGuardiansState({ guardians, threshold: newThreshold });
-      setGuardiansByWalletId((prev) => ({
-        ...prev,
-        [id]: { guardians, threshold: newThreshold },
-      }));
-      setGuardianThresholdInput(newThreshold > 0 ? String(newThreshold) : "");
     } catch (err) {
       setGuardianError(err instanceof Error ? err.message : "Network or unknown error");
     } finally {
@@ -600,8 +557,8 @@ export default function Home() {
         <section className="mt-10 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-4 text-lg font-medium">Guardian management</h2>
           <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-            Link trusted guardian addresses to a wallet and define a recovery threshold (for example,{" "}
-            <span className="font-semibold">2-of-3</span> guardians required.
+            Add exactly 3 trusted guardian addresses to a wallet and define a recovery threshold (for
+            example, <span className="font-semibold">2-of-3</span> guardians required).
           </p>
 
           <div className="mb-4 space-y-2">
@@ -672,61 +629,40 @@ export default function Home() {
                 >
                   Add guardian address
                 </label>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Guardians added:{" "}
+                  <span className="font-medium">
+                    {guardiansState.guardians.length}/{MAX_GUARDIANS}
+                  </span>
+                </p>
                 <input
                   id="guardianAddress"
                   type="text"
                   value={guardianAddressInput}
                   onChange={(e) => setGuardianAddressInput(e.target.value)}
                   placeholder="0xguardian..."
+                  disabled={guardianLoading || guardiansState.guardians.length >= MAX_GUARDIANS}
                   className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                 />
                 <button
                   type="submit"
-                  disabled={guardianLoading}
+                  disabled={guardianLoading || guardiansState.guardians.length >= MAX_GUARDIANS}
                   className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
-                  {guardianLoading ? "Saving…" : "Add guardian"}
+                  {guardianLoading
+                    ? "Saving…"
+                    : guardiansState.guardians.length >= MAX_GUARDIANS
+                      ? "3 guardians added"
+                      : "Add guardian"}
                 </button>
               </form>
-
-              <form onSubmit={handleUpdateThreshold} className="space-y-2">
-                <label
-                  htmlFor="guardianThreshold"
-                  className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400"
-                >
-                  Recovery threshold (number of guardian approvals required)
-                </label>
-                <input
-                  id="guardianThreshold"
-                  type="number"
-                  min={guardiansState.guardians.length > 0 ? 1 : 0}
-                  max={guardiansState.guardians.length || undefined}
-                  value={guardianThresholdInput}
-                  onChange={(e) => setGuardianThresholdInput(e.target.value)}
-                  placeholder={
-                    guardiansState.guardians.length > 0
-                      ? `1 to ${guardiansState.guardians.length}`
-                      : "0 (no guardians yet)"
-                  }
-                  className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-                />
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Current threshold:{" "}
-                  <span className="font-medium">
-                    {guardiansState.threshold > 0
-                      ? `${guardiansState.threshold}-of-${guardiansState.guardians.length || 0}`
-                      : "not set"}
-                  </span>
-                  .
-                </p>
-                <button
-                  type="submit"
-                  disabled={guardianLoading || guardiansState.guardians.length === 0}
-                  className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                >
-                  {guardianLoading ? "Updating…" : "Update threshold"}
-                </button>
-              </form>
+              <div className="rounded border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                Recovery threshold is compulsory and fixed at{" "}
+                <span className="font-semibold">2 approvals</span>
+                {guardiansState.guardians.length > 0
+                  ? ` (${guardiansState.threshold}-of-${guardiansState.guardians.length})`
+                  : "."}
+              </div>
             </div>
           )}
         </section>
@@ -734,3 +670,5 @@ export default function Home() {
     </div>
   );
 }
+
+

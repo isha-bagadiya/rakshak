@@ -15,5 +15,11 @@
       "0x7765c41D3594b034e3D1E0742386844d46e9E496"
     ],
     "threshold": 2
+  },
+  "69b3a2e33fca9adbf6b2e34295fcd5bb": {
+    "guardians": [
+      "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124"
+    ],
+    "threshold": 1
   }
 }
