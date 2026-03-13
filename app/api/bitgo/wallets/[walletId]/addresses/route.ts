@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server';
+import { getBitGo, getDefaultCoin, isAllowedCoin } from '@/lib/bitgo';
+import { toUserMessage } from '@/lib/bitgoErrors';
+
+type BitGo = Awaited<ReturnType<typeof getBitGo>>;
+
+export async function POST(
+  _request: Request,
+  { params }: { params: Promise<{ walletId: string }> },
+) {
+  try {
+    const { walletId } = await params;
+    const id = typeof walletId === 'string' ? walletId.trim() : '';
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Missing or invalid wallet ID in path.' },
+        { status: 400 },
+      );
+    }
+
+    const body = await _request.json().catch(() => ({}));
+    const coin =
+      typeof body.coin === 'string' ? body.coin.trim().toLowerCase() : getDefaultCoin();
+
+    if (!isAllowedCoin(coin)) {
+      return NextResponse.json(
+        { error: 'Invalid "coin". Only Base Ethereum Testnet (tbaseeth) is allowed.' },
+        { status: 400 },
+      );
+    }
+
+    const bitgo: BitGo = await getBitGo();
+    const wallets = (bitgo as unknown as { coin(name: string): { wallets(): { get(params: { id: string }): Promise<{ createAddress(): Promise<unknown> }> } } }).coin(coin).wallets();
+    const wallet = await wallets.get({ id });
+
+    if (!wallet || typeof (wallet as { createAddress?: unknown }).createAddress !== 'function') {
+      return NextResponse.json(
+        { error: 'Wallet not found or invalid.' },
+        { status: 404 },
+      );
+    }
+
+    const address = await (wallet as { createAddress(): Promise<unknown> }).createAddress();
+
+    return NextResponse.json(
+      typeof address === 'object' && address !== null ? address : { address },
+    );
+  } catch (error) {
+    const message = toUserMessage(error);
+    const status = (error as { status?: number })?.status;
+    return NextResponse.json(
+      { error: message },
+      { status: typeof status === 'number' && status >= 400 && status < 600 ? status : 500 },
+    );
+  }
+}

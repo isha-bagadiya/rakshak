@@ -20,17 +20,50 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## BitGo Testnet Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. Create a BitGo test account at [https://app.bitgo-test.com](https://app.bitgo-test.com) (OTP in test is `0000000`).
+2. **Create a long-lived access token** (in the BitGo test app, go to **User Menu → Developer → Access Tokens → Add**, or similar). Use this as a checklist:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   | Field | What to fill (test environment) |
+   |-------|----------------------------------|
+   | **Label** | Any name, e.g. `Hackathon Dev` or `Catchup API` |
+   | **OTP** | Always `0000000` in test |
+   | **Expiration / Duration** | e.g. 90 days or 1 year (avoid 10 years) |
+   | **Enterprise** | Select your only enterprise (or copy its ID from the URL or from login API response: `user.enterprises[0].id`) |
+   | **Scopes / Permissions** | For this project, enable at least: **wallet_create**, **wallet_view_all**, **wallet_spend_all**, **wallet_manage_all**, **wallet_edit_all**, **wallet_approve_all**. You can also enable **enterprise_view_all** if you use enterprise APIs. |
+   | **Spending limit** | Add a limit so you don’t need to “unlock” the token for each send. **Coin**: pick a testnet coin (e.g. **hteth** for Ethereum testnet or **tbtc4** for Bitcoin testnet). **Limit**: e.g. `1000000000000000000` (1e18 wei for hteth) or `100000000` (1 BTC in satoshis for tbtc4). You can add multiple coins if needed. |
+   | **IP restriction** | In **test** you can often leave empty. If required, you can use your current IP or a CIDR like `0.0.0.0/0` only for local/dev (never in production). |
+   | **Admin** | Leave **unchecked** (no need for user management). |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   After saving, **copy the token once** (it’s shown only at creation) into your `.env` as `ACCESS_TOKEN`.  
+   More detail: [Create Access Tokens](https://developers.bitgo.com/docs/get-started-access-tokens).
+3. Copy `.env.example` to `.env` in the project root and fill in:
+   - `ACCESS_TOKEN`
+   - `ENV` (keep as `test` for the BitGo test environment)
+   - `WALLET_PASSPHRASE`
+   - `ENTERPRISE_ID`
+   - `BITGO_EXPRESS_URL` (optional, for when you run BitGo Express)
+   - `BITGO_COIN` (optional; this app uses **Base Ethereum Testnet** only, `tbaseeth`)
+4. Install dependencies (if not already done):
 
-## Deploy on Vercel
+   ```bash
+   yarn
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. **Fund your enterprise gas tank (required for Base testnet wallets)**  
+   This app uses **Base Ethereum Testnet (tbaseeth)** only. Creating wallets deploys a contract on chain; BitGo pays gas from your enterprise **fee address** (gas tank). If you see *"insufficient funds in fee address"*:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   - In [BitGo Test](https://app.bitgo-test.com), open **Gas Tanks** (top menu).
+   - Select the gas tank for **tbaseeth** (Base Ethereum Testnet).
+   - Click **Deposit** and send at least **0.01 testnet Base ETH** to the shown address (e.g. from a [Base Sepolia faucet](https://www.ethereum-ecosystem.com/faucets/base-sepolia)).
+   - See [Fund Gas Tanks](https://developers.bitgo.com/docs/get-started-gas-tanks) for details.
+
+6. Start the dev server and visit `/api/bitgo/status` to confirm BitGo testnet connectivity:
+
+   ```bash
+   yarn dev
+   ```
+
+   The endpoint should return `ok: true` when your environment variables are correctly configured.
+

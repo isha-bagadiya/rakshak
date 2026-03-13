@@ -1,0 +1,12 @@
+{
+  "69afacf8682e20e5bae1ef6bdbe603e3": {
+    "guardians": [
+      "0x7C81c3d1241Cc5d6d46b53a0a67e67c9610a7653"
+    ],
+    "threshold": 0
+  },
+  "69b0f64dafca3a5fe7d7f80956d325aa": {
+    "guardians": [],
+    "threshold": 0
+  }
+}
