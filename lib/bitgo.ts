@@ -1,9 +1,10 @@
 import { BitGoAPI, type BitGoAPIOptions } from '@bitgo/sdk-api';
-import { register, Teth } from '@bitgo/sdk-coin-eth';
+import { register as registerEth } from '@bitgo/sdk-coin-eth';
+import { register as registerArbeth } from '@bitgo/sdk-coin-arbeth';
 
 const ENV_DEFAULT = 'test';
-/** Base Ethereum Testnet only (BitGo coin id: tbaseeth). */
-const COIN_DEFAULT = 'tbaseeth';
+/** Arbitrum Testnet (BitGo coin id: tarbeth). */
+const COIN_DEFAULT = 'tarbeth';
 
 let bitgoPromise: Promise<BitGoAPI> | null = null;
 
@@ -17,10 +18,8 @@ async function initBitGo(): Promise<BitGoAPI> {
   }
 
   const sdk = new BitGoAPI({ env });
-  register(sdk);
-  // Base uses same EVM/TSS stack as Ethereum testnet; register so coin('tbaseeth') works for createMpc
-  sdk.register('tbaseeth', Teth.createInstance);
-  sdk.register('baseeth', Teth.createInstance);
+  registerEth(sdk);
+  registerArbeth(sdk);
 
   await sdk.authenticateWithAccessToken({ accessToken });
 
@@ -34,16 +33,18 @@ export function getBitGo(): Promise<BitGoAPI> {
   return bitgoPromise;
 }
 
-/** Default coin for wallet ops (e.g. teth, hteth). Override with BITGO_COIN. */
+/** Default coin for wallet ops (e.g. tarbeth). Override with BITGO_COIN. */
 export function getDefaultCoin(): string {
   return (process.env.BITGO_COIN as string | undefined) ?? COIN_DEFAULT;
 }
 
-/** Allowed coins: Base Ethereum Testnet only. */
-export const ALLOWED_COINS = ['tbaseeth'] as const;
+/** Allowed coins: Arbitrum Testnet only. */
+export const ALLOWED_COINS = ['tarbeth'] as const;
 export type AllowedCoin = (typeof ALLOWED_COINS)[number];
 
 export function isAllowedCoin(coin: string): coin is AllowedCoin {
   return ALLOWED_COINS.includes(coin as AllowedCoin);
 }
+
+
 

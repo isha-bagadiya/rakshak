@@ -3,13 +3,11 @@ import { getBitGo, getDefaultCoin, isAllowedCoin } from '@/lib/bitgo';
 import { toUserMessage } from '@/lib/bitgoErrors';
 import { getRequestIdentity } from '@/lib/requestIdentity';
 import { setWalletOwner } from '@/lib/walletOwnersDb';
+import { hasRequiredUserGuardians } from '@/lib/userGuardiansDb';
 
 const LABEL_MAX_LENGTH = 256;
 
 type BitGo = Awaited<ReturnType<typeof getBitGo>>;
-
-/** Coins that require TSS/MPC keys (e.g. Base). Independent keys not supported. */
-const TSS_COINS = ['tbaseeth', 'baseeth'];
 
 function getWalletIdFromResult(result: { wallet: unknown }): string | null {
   const wallet = result.wallet;
@@ -19,50 +17,6 @@ function getWalletIdFromResult(result: { wallet: unknown }): string | null {
 
   const maybeId = (wallet as { id?: unknown }).id;
   return typeof maybeId === 'string' && maybeId.trim() ? maybeId : null;
-}
-
-/** TSS flow for Base: create MPC keys via SDK then add wallet (multisigType: tss). */
-async function createWalletTSS(
-  bitgo: BitGo,
-  coin: string,
-  params: { label: string; passphrase: string; enterprise: string },
-): Promise<{ wallet: unknown; userKeychain: unknown; backupKeychain: unknown; bitgoKeychain: unknown }> {
-  type CoinWithMpc = {
-    coin(name: string): { keychains(): { createMpc(opts: { multisigType: string; passphrase: string; enterprise: string }): Promise<{ userKeychain: { id: string }; backupKeychain: { id: string }; bitgoKeychain: { id: string } }> } };
-  };
-  const bg = bitgo as unknown as CoinWithMpc;
-  const coinObj = bg.coin(coin);
-  const keychains = await coinObj.keychains().createMpc({
-    multisigType: 'tss',
-    passphrase: params.passphrase,
-    enterprise: params.enterprise,
-  });
-
-  const url = (path: string) => (bitgo as { url(path: string, version?: number): string }).url(path, 2);
-  const post = (path: string, body: object) =>
-    (bitgo as { post(u: string): { send(b: object): { result(): Promise<unknown> } } })
-      .post(url(path))
-      .send(body)
-      .result();
-
-  // Omit walletVersion so BitGo server picks the valid default for tbaseeth (sending 4 can cause "Invalid wallet version: 4")
-  const walletBody: Record<string, unknown> = {
-    label: params.label,
-    enterprise: params.enterprise,
-    m: 2,
-    n: 3,
-    keys: [keychains.userKeychain.id, keychains.backupKeychain.id, keychains.bitgoKeychain.id],
-    type: 'hot',
-    multisigType: 'tss',
-  };
-  const wallet = await post(`/${coin}/wallet/add`, walletBody);
-
-  return {
-    wallet,
-    userKeychain: keychains.userKeychain,
-    backupKeychain: keychains.backupKeychain,
-    bitgoKeychain: keychains.bitgoKeychain,
-  };
 }
 
 /** BitGo server v2 flow: create user/backup/bitgo independent keys then add wallet (for coins that support onchain multisig). */
@@ -159,7 +113,15 @@ export async function POST(request: Request) {
     }
     if (!isAllowedCoin(coin)) {
       return NextResponse.json(
-        { error: `Invalid "coin". Only Base Ethereum Testnet (tbaseeth) is allowed.` },
+        { error: `Invalid "coin". Only Arbitrum Testnet (tarbeth) is allowed.` },
+        { status: 400 },
+      );
+    }
+
+    const hasGuardians = await hasRequiredUserGuardians(identity.email);
+    if (!hasGuardians) {
+      return NextResponse.json(
+        { error: 'Please add exactly 3 guardian addresses before creating a wallet.' },
         { status: 400 },
       );
     }
@@ -181,9 +143,11 @@ export async function POST(request: Request) {
     }
 
     const bitgo = await getBitGo();
-    const result = TSS_COINS.includes(coin)
-      ? await createWalletTSS(bitgo, coin, { label, passphrase, enterprise })
-      : await createWalletWithKeychainsServer(bitgo, coin, { label, passphrase, enterprise });
+    const result = await createWalletWithKeychainsServer(bitgo, coin, {
+      label,
+      passphrase,
+      enterprise,
+    });
     const walletId = getWalletIdFromResult(result);
     if (walletId) {
       await setWalletOwner(walletId, identity.email);
@@ -203,3 +167,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+

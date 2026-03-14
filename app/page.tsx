@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 
-/** Base Ethereum Testnet only (BitGo: tbaseeth). */
-const COIN = "tbaseeth";
+/** Arbitrum Testnet only (BitGo: tarbeth). */
+const COIN = "tarbeth";
 const MAX_GUARDIANS = 3;
 
 const LAST_WALLET_KEY_PREFIX = "catchup_last_wallet_id";
@@ -55,6 +55,11 @@ export default function Home() {
   const [guardianAddressInput, setGuardianAddressInput] = useState("");
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState<string | null>(null);
+  const [guardianSetupInputs, setGuardianSetupInputs] = useState<string[]>(["", "", ""]);
+  const [guardianSetupCompleted, setGuardianSetupCompleted] = useState(false);
+  const [guardianSetupLoading, setGuardianSetupLoading] = useState(false);
+  const [guardianSetupError, setGuardianSetupError] = useState<string | null>(null);
+  const [guardianSetupSuccess, setGuardianSetupSuccess] = useState<string | null>(null);
 
   const [walletsList, setWalletsList] = useState<WalletItem[]>([]);
   const [walletsLoading, setWalletsLoading] = useState(true);
@@ -147,6 +152,89 @@ export default function Home() {
     }
   }, [authenticated, currentUserEmail, getLastWalletStorageKey]);
 
+  useEffect(() => {
+    if (!authenticated) {
+      setGuardianSetupCompleted(false);
+      setGuardianSetupInputs(["", "", ""]);
+      setGuardianSetupError(null);
+      setGuardianSetupSuccess(null);
+      return;
+    }
+    let cancelled = false;
+    setGuardianSetupLoading(true);
+    setGuardianSetupError(null);
+    fetch("/api/guardians/profile", {
+      headers: authHeaders(),
+    })
+      .then((res) => res.json().catch(() => ({})))
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.error) {
+          setGuardianSetupError(data.error);
+          return;
+        }
+        const guardians = Array.isArray(data?.guardians) ? (data.guardians as string[]) : [];
+        const completed = Boolean(data?.completed) && guardians.length === MAX_GUARDIANS;
+        setGuardianSetupCompleted(completed);
+        setGuardianSetupInputs([
+          guardians[0] ?? "",
+          guardians[1] ?? "",
+          guardians[2] ?? "",
+        ]);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setGuardianSetupError(
+            err instanceof Error ? err.message : "Failed to load guardian setup",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setGuardianSetupLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, authHeaders]);
+
+  function updateGuardianSetupInput(index: number, value: string) {
+    setGuardianSetupInputs((prev) => prev.map((item, idx) => (idx === index ? value : item)));
+  }
+
+  async function handleSaveGuardianSetup(e: React.FormEvent) {
+    e.preventDefault();
+    const guardians = guardianSetupInputs.map((g) => g.trim());
+    if (guardians.some((g) => !g)) {
+      setGuardianSetupError("Please enter all 3 guardian wallet addresses.");
+      setGuardianSetupSuccess(null);
+      return;
+    }
+
+    setGuardianSetupLoading(true);
+    setGuardianSetupError(null);
+    setGuardianSetupSuccess(null);
+    try {
+      const res = await fetch("/api/guardians/profile", {
+        method: "PUT",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ guardians }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setGuardianSetupError(data?.error ?? `Request failed: ${res.status}`);
+        return;
+      }
+      setGuardianSetupCompleted(true);
+      const saved = Array.isArray(data?.guardians) ? (data.guardians as string[]) : guardians;
+      setGuardianSetupInputs([saved[0] ?? "", saved[1] ?? "", saved[2] ?? ""]);
+      setGuardianSetupSuccess("Guardian setup completed. You can now create wallet.");
+    } catch (err) {
+      setGuardianSetupError(err instanceof Error ? err.message : "Network or unknown error");
+    } finally {
+      setGuardianSetupLoading(false);
+    }
+  }
+
   function selectWallet(id: string) {
     const tid = id.trim();
     if (!tid) return;
@@ -159,6 +247,10 @@ export default function Home() {
 
   async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
+    if (!guardianSetupCompleted) {
+      setGenerateError("Please complete guardian setup with 3 addresses first.");
+      return;
+    }
     setGenerateError(null);
     setGenerateResult(null);
     setLoading(true);
@@ -387,8 +479,54 @@ export default function Home() {
           BitGo Self-Custody Multisig Hot (Simple)
         </h1>
         <p className="mb-8 text-zinc-600 dark:text-zinc-400">
-          Create a 2-of-3 multisig hot wallet on <strong>Base Ethereum Testnet</strong> (tbaseeth) and receive addresses.
+          Create a 2-of-3 multisig hot wallet on <strong>Arbitrum Testnet</strong> (tarbeth) and receive addresses.
         </p>
+
+        <section className="mb-10 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="mb-4 text-lg font-medium">Step 1: Add 3 guardians</h2>
+          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+            Before wallet creation, add exactly 3 guardian wallet addresses.
+          </p>
+          <form onSubmit={handleSaveGuardianSetup} className="space-y-3">
+            {guardianSetupInputs.map((value, index) => (
+              <div key={`guardian-setup-${index}`}>
+                <label
+                  htmlFor={`guardian-setup-${index}`}
+                  className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400"
+                >
+                  Guardian {index + 1} address
+                </label>
+                <input
+                  id={`guardian-setup-${index}`}
+                  type="text"
+                  value={value}
+                  onChange={(e) => updateGuardianSetupInput(index, e.target.value)}
+                  placeholder="0x..."
+                  className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+            ))}
+            <button
+              type="submit"
+              disabled={guardianSetupLoading}
+              className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              {guardianSetupLoading ? "Saving..." : "Save guardians"}
+            </button>
+          </form>
+          {guardianSetupError && (
+            <p className="mt-3 text-sm text-red-600 dark:text-red-400">{guardianSetupError}</p>
+          )}
+          {guardianSetupSuccess && (
+            <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">{guardianSetupSuccess}</p>
+          )}
+          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+            Status:{" "}
+            <span className="font-medium">
+              {guardianSetupCompleted ? "Completed (3/3 guardians added)" : "Pending guardian setup"}
+            </span>
+          </p>
+        </section>
 
         <section className="mb-10 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-4 text-lg font-medium">Your wallets</h2>
@@ -477,7 +615,12 @@ export default function Home() {
         </section>
 
         <section className="mb-10 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="mb-4 text-lg font-medium">Create wallet</h2>
+          <h2 className="mb-4 text-lg font-medium">Step 2: Create wallet</h2>
+          {!guardianSetupCompleted && (
+            <p className="mb-4 text-sm text-amber-700 dark:text-amber-300">
+              Complete Step 1 (add 3 guardians) to enable wallet creation.
+            </p>
+          )}
           <form onSubmit={handleGenerate} className="flex flex-col gap-4">
             <div>
               <label htmlFor="label" className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">
@@ -489,12 +632,13 @@ export default function Home() {
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="My Hot Wallet"
+                disabled={!guardianSetupCompleted}
                 className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
               />
             </div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !guardianSetupCompleted}
               className="rounded bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               {loading ? "Creating…" : "Create wallet"}
@@ -670,5 +814,7 @@ export default function Home() {
     </div>
   );
 }
+
+
 
 

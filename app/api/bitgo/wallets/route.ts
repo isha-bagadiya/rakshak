@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
     if (!isAllowedCoin(coin)) {
       return NextResponse.json(
-        { error: 'Invalid "coin" query. Only Base Ethereum Testnet (tbaseeth) is allowed.' },
+        { error: 'Invalid "coin" query. Only Arbitrum Testnet (tarbeth) is allowed.' },
         { status: 400 },
       );
     }
@@ -50,3 +50,5 @@ export async function GET(request: Request) {
     );
   }
 }
+
+

@@ -10,10 +10,13 @@ export function toUserMessage(error: unknown): string {
     return 'Could not reach BitGo. Check your network and BitGo service status.';
   }
   if (raw.includes('insufficient funds in fee address') || raw.includes('fee address')) {
-    return 'Enterprise gas tank (fee address) has insufficient funds. Fund it in BitGo: app.bitgo-test.com → Gas Tanks → select tbaseeth (Base Ethereum Testnet) → Deposit. Send at least ~0.01 testnet Base ETH to the shown address. See: https://developers.bitgo.com/docs/get-started-gas-tanks';
+    return 'Enterprise fee address has insufficient funds. Fund your enterprise in BitGo test before retrying.';
   }
   if (raw.includes('Independent keys are not support') || raw.includes('independent keys')) {
-    return 'This coin (Base/tbaseeth) requires TSS/MPC keys, not independent keys. The app should use the TSS flow; if you still see this, the TSS key creation may have failed. Check server logs.';
+    return 'This coin does not support independent key creation in this flow. Use a coin that supports Self-Custody Multisig Hot (Simple), such as tarbeth.';
   }
   return raw || 'Unknown BitGo error';
 }
+
+
+

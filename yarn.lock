@@ -256,6 +256,19 @@
     secrets.js-grempe "^1.1.0"
     superagent "^9.0.1"
 
+"@bitgo/sdk-coin-arbeth@^21.11.7":
+  version "21.11.7"
+  resolved "https://registry.yarnpkg.com/@bitgo/sdk-coin-arbeth/-/sdk-coin-arbeth-21.11.7.tgz#3ca5203705e8b42a1955efab0a1c8d3a43ee6006"
+  integrity sha512-kFKDlamxeDt15C1pQcKdkO1bJhA9YW9y4PtWlDRAwLkUbj6dHyleYPVm/oOJ1Na6jrrqKP1oS2yoIbo84yDd2w==
+  dependencies:
+    "@bitgo/abstract-eth" "^24.20.7"
+    "@bitgo/sdk-core" "^36.34.0"
+    "@bitgo/secp256k1" "^1.10.0"
+    "@bitgo/statics" "^58.30.0"
+    "@ethereumjs/common" "^2.6.5"
+    ethereumjs-abi "^0.6.5"
+    ethereumjs-util "7.1.5"
+
 "@bitgo/sdk-coin-eth@^25.6.5":
   version "25.6.6"
   resolved "https://registry.yarnpkg.com/@bitgo/sdk-coin-eth/-/sdk-coin-eth-25.6.6.tgz#f08604fdcf33d7bcd06259ce242478c4087414db"

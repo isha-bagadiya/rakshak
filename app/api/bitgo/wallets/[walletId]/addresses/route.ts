@@ -43,7 +43,7 @@ export async function POST(
 
     if (!isAllowedCoin(coin)) {
       return NextResponse.json(
-        { error: 'Invalid "coin". Only Base Ethereum Testnet (tbaseeth) is allowed.' },
+        { error: 'Invalid "coin". Only Arbitrum Testnet (tarbeth) is allowed.' },
         { status: 400 },
       );
     }
@@ -73,3 +73,5 @@ export async function POST(
     );
   }
 }
+
+

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@bitgo/sdk-api": "^1.75.3",
+    "@bitgo/sdk-coin-arbeth": "^21.11.7",
     "@bitgo/sdk-coin-eth": "^25.6.5",
     "@privy-io/react-auth": "latest",
     "axios": "^1.13.6",
