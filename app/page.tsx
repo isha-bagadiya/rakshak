@@ -43,6 +43,9 @@ export default function Home() {
   const [label, setLabel] = useState("");
   const [generateResult, setGenerateResult] = useState<unknown>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [keyExportResult, setKeyExportResult] = useState<unknown>(null);
+  const [keyExportError, setKeyExportError] = useState<string | null>(null);
+  const [keyExportLoading, setKeyExportLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [addrWalletId, setAddrWalletId] = useState("");
@@ -253,6 +256,8 @@ export default function Home() {
     }
     setGenerateError(null);
     setGenerateResult(null);
+    setKeyExportResult(null);
+    setKeyExportError(null);
     setLoading(true);
     try {
       const res = await fetch("/api/bitgo/wallets/generate", {
@@ -418,6 +423,35 @@ export default function Home() {
       setAddressError(err instanceof Error ? err.message : "Network or unknown error");
     } finally {
       setAddressLoading(false);
+    }
+  }
+
+  async function handleExportKeysOnce() {
+    if (!wallet?.id) {
+      setKeyExportError("No wallet found to export keys.");
+      return;
+    }
+    setKeyExportError(null);
+    setKeyExportResult(null);
+    setKeyExportLoading(true);
+    try {
+      const res = await fetch(
+        `/api/bitgo/wallets/${encodeURIComponent(wallet.id)}/key-export`,
+        {
+          method: "POST",
+          headers: authHeaders(),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setKeyExportError(data?.error ?? `Request failed: ${res.status}`);
+        return;
+      }
+      setKeyExportResult(data);
+    } catch (err) {
+      setKeyExportError(err instanceof Error ? err.message : "Network or unknown error");
+    } finally {
+      setKeyExportLoading(false);
     }
   }
 
@@ -650,13 +684,33 @@ export default function Home() {
           {generateResult ? (
             <div className="mt-4 rounded border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
               <p className="mb-2 text-sm font-medium text-amber-800 dark:text-amber-200">
-                Backup this key once; we do not store it.
+                Wallet created. Export user/backup keys once and store them in a secure vault.
               </p>
               {wallet && (
                 <div className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
                   <p><span className="font-medium">Wallet ID:</span> {wallet.id ?? "—"}</p>
                   <p><span className="font-medium">Label:</span> {wallet.label ?? "—"}</p>
                   <p><span className="font-medium">Receive address:</span> {wallet.receiveAddress?.address ?? "—"}</p>
+                </div>
+              )}
+              {wallet?.id && (
+                <div className="mt-4 space-y-3">
+                  <button
+                    type="button"
+                    onClick={handleExportKeysOnce}
+                    disabled={keyExportLoading}
+                    className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  >
+                    {keyExportLoading ? "Exporting..." : "Export keys once"}
+                  </button>
+                  {keyExportError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{keyExportError}</p>
+                  )}
+                  {keyExportResult && (
+                    <pre className="max-h-80 overflow-auto rounded border border-zinc-200 bg-white p-3 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                      {JSON.stringify(keyExportResult, null, 2)}
+                    </pre>
+                  )}
                 </div>
               )}
             </div>

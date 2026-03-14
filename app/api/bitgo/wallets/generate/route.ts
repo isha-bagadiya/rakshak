@@ -4,10 +4,13 @@ import { toUserMessage } from '@/lib/bitgoErrors';
 import { getRequestIdentity } from '@/lib/requestIdentity';
 import { setWalletOwner } from '@/lib/walletOwnersDb';
 import { hasRequiredUserGuardians } from '@/lib/userGuardiansDb';
+import { saveKeyExportRecord } from '@/lib/keyExportDb';
 
 const LABEL_MAX_LENGTH = 256;
 
 type BitGo = Awaited<ReturnType<typeof getBitGo>>;
+type PublicKeychain = { id: string; pub: string; encryptedPrv: string };
+type PrivateMaterial = { userPrv: string; backupPrv: string };
 
 function getWalletIdFromResult(result: { wallet: unknown }): string | null {
   const wallet = result.wallet;
@@ -24,7 +27,13 @@ async function createWalletWithKeychainsServer(
   bitgo: BitGo,
   coin: string,
   params: { label: string; passphrase: string; enterprise: string },
-): Promise<{ wallet: unknown; userKeychain: unknown; backupKeychain: unknown; bitgoKeychain: unknown }> {
+): Promise<{
+  wallet: unknown;
+  userKeychain: PublicKeychain;
+  backupKeychain: PublicKeychain;
+  bitgoKeychain: unknown;
+  privateMaterial: PrivateMaterial;
+}> {
   const url = (path: string) => (bitgo as { url(path: string, version?: number): string }).url(path, 2);
   const post = (path: string, body: object) =>
     (bitgo as { post(u: string): { send(b: object): { result(): Promise<unknown> } } })
@@ -80,8 +89,12 @@ async function createWalletWithKeychainsServer(
   return {
     wallet,
     userKeychain: { ...userKeychain, pub: userKey.xpub, encryptedPrv: encryptedUserPrv },
-    backupKeychain: { ...backupKeychain, pub: backupKey.xpub, encryptedPrv: encryptedBackupPrv, prv: backupKey.xprv },
+    backupKeychain: { ...backupKeychain, pub: backupKey.xpub, encryptedPrv: encryptedBackupPrv },
     bitgoKeychain,
+    privateMaterial: {
+      userPrv: userKey.xprv,
+      backupPrv: backupKey.xprv,
+    },
   };
 }
 
@@ -149,14 +162,40 @@ export async function POST(request: Request) {
       enterprise,
     });
     const walletId = getWalletIdFromResult(result);
+    let keyExportExpiresAt: string | null = null;
     if (walletId) {
       await setWalletOwner(walletId, identity.email);
+      const exportRecord = await saveKeyExportRecord({
+        walletId,
+        ownerEmail: identity.email,
+        payload: {
+          userKeychain: {
+            ...result.userKeychain,
+            prv: result.privateMaterial.userPrv,
+          },
+          backupKeychain: {
+            ...result.backupKeychain,
+            prv: result.privateMaterial.backupPrv,
+          },
+        },
+      });
+      keyExportExpiresAt = exportRecord.expiresAt;
     }
 
     return NextResponse.json({
-      ...result,
+      wallet: result.wallet,
+      userKeychain: result.userKeychain,
+      backupKeychain: result.backupKeychain,
+      bitgoKeychain: result.bitgoKeychain,
+      keyExport: walletId
+        ? {
+            path: `/api/bitgo/wallets/${walletId}/key-export`,
+            method: 'POST',
+            expiresAt: keyExportExpiresAt,
+          }
+        : null,
       _warning:
-        'Backup the backup keychain once; it is not stored anywhere else. This response may contain sensitive key material.',
+        'Sensitive private keys are not returned here. Use the one-time key export endpoint immediately.',
     });
   } catch (error) {
     const message = toUserMessage(error);
