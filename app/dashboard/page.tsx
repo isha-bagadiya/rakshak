@@ -719,7 +719,7 @@ export default function Home() {
                   {keyExportError && (
                     <p className="text-sm text-[#FF8CA9]">{keyExportError}</p>
                   )}
-                  {keyExportResult && (
+                  {Boolean(keyExportResult) && (
                     <pre className="max-h-80 overflow-auto rounded-lg border border-[rgb(122_27_122_/_0.45)] bg-[rgb(10_10_10_/_0.75)] p-3 text-xs text-[#D6BCE5]">
                       {JSON.stringify(keyExportResult, null, 2)}
                     </pre>

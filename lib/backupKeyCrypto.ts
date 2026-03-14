@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 type EncryptedBackupKey = {
   ciphertext: string;
@@ -52,3 +52,4 @@ export function decryptBackupPrivateKey(payload: EncryptedBackupKey): string {
   const plain = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
   return plain.toString('utf8');
 }
+

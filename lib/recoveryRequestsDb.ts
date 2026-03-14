@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export type RecoveryDecision = 'approve' | 'reject';
 export type RecoveryGuardianStatus = 'pending' | 'approved' | 'rejected';
@@ -291,3 +291,4 @@ export async function markRecoveryRequestExecuted(params: {
   await writeFileSafe(db);
   return record;
 }
+

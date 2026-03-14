@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export type TransferAuditEventType = 'normal_transfer' | 'recovery_transfer';
 export type TransferAuditStatus = 'submitted' | 'failed';
@@ -92,3 +92,4 @@ export async function listTransferAuditEvents(
     })
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
+
