@@ -114,98 +114,118 @@ export default function GuardianRequestDetailPage() {
   }
 
   if (!ready) {
-    return <main className="mx-auto max-w-3xl px-4 py-10 text-zinc-900 dark:text-zinc-100">Loading authentication...</main>;
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-black px-4 py-10 text-[#EBDDF7]">
+        <div className="mx-auto max-w-5xl rounded-xl border border-[rgb(122_27_122_/_0.35)] bg-[rgb(10_10_10_/_0.75)] p-6 text-sm text-[#BDA9CC]">
+          Loading authentication...
+        </div>
+      </main>
+    );
   }
+
   if (!authenticated) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-10 text-zinc-900 dark:text-zinc-100">
-        <h1 className="mb-4 text-2xl font-semibold">Guardian Decision</h1>
-        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">Sign in to review recovery request.</p>
-        <button
-          type="button"
-          onClick={login}
-          className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-        >
-          Sign in
-        </button>
+      <main className="relative min-h-screen overflow-hidden bg-black px-4 py-10 text-[#EBDDF7]">
+        <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-[rgb(122_27_122_/_0.2)] blur-3xl" />
+        <section className="relative z-10 mx-auto max-w-5xl rounded-xl border border-[rgb(122_27_122_/_0.35)] bg-[linear-gradient(160deg,rgba(65,8,65,0.45),rgba(10,10,10,0.92))] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[#BDA9CC]">Guardian Recovery</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#F3E9FA]">Guardian Decision</h1>
+          <p className="mt-3 text-sm text-[#BDA9CC]">Sign in to review the recovery request.</p>
+          <button
+            type="button"
+            onClick={login}
+            className="mt-5 rounded border border-[rgb(122_27_122_/_0.6)] bg-[rgb(65_8_65_/_0.45)] px-4 py-2 text-sm font-medium text-[#EBDDF7] transition-colors hover:border-[rgb(122_27_122)] hover:bg-[rgb(122_27_122_/_0.3)]"
+          >
+            Sign in
+          </button>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 text-zinc-900 dark:text-zinc-100">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Guardian Decision</h1>
-        <Link href="/guardian/requests" className="text-sm text-blue-600 hover:underline">
-          Back to Guardian Requests
-        </Link>
-      </div>
+    <main className="relative min-h-screen overflow-hidden bg-black px-4 py-10 text-[#EBDDF7]">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+      <div className="pointer-events-none absolute -top-24 left-1/2 h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-[rgb(122_27_122_/_0.2)] blur-3xl" />
 
-      {loading && <p className="text-sm text-zinc-500">Loading request...</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      {request && (
-        <section className="space-y-4 rounded border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="relative z-10 mx-auto max-w-5xl">
+        <div className="mb-6 flex items-center justify-between gap-3 border-b border-[rgb(122_27_122_/_0.35)] pb-4">
           <div>
-            <p className="text-sm"><span className="font-medium">Request ID:</span> {request.id}</p>
-            <p className="text-sm"><span className="font-medium">Wallet:</span> {request.walletId}</p>
-            <p className="text-sm"><span className="font-medium">Requester:</span> {request.requesterEmail}</p>
-            <p className="text-sm"><span className="font-medium">Status:</span> {request.status}</p>
-            <p className="text-sm"><span className="font-medium">Expires:</span> {request.expiresAt}</p>
-            <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">{request.reason}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[#BDA9CC]">Guardian Recovery</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#F3E9FA]">Guardian Decision</h1>
           </div>
+          <Link href="/guardian/requests" className="text-xs font-mono uppercase tracking-[0.18em] text-[#D6BCE5] transition-colors hover:text-white">
+            Back to Requests
+          </Link>
+        </div>
 
-          <div>
-            <h2 className="mb-2 text-sm font-semibold">Guardian approvals</h2>
-            <ul className="space-y-1 text-sm">
-              {request.guardians.map((g) => (
-                <li key={g.email} className="rounded border border-zinc-200 px-2 py-1 dark:border-zinc-700">
-                  {g.email} ({g.address}) - {g.status}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {loading && <p className="mb-4 text-sm text-[#BDA9CC]">Loading request...</p>}
+        {error && <p className="mb-4 text-sm text-[#FF8CA9]">{error}</p>}
 
-          {myGuardianEntry ? (
-            <div className="space-y-2 rounded border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                Sign this challenge with your guardian wallet:
-              </p>
-              <pre className="overflow-auto rounded bg-white p-2 text-xs dark:bg-zinc-900 dark:text-zinc-100">{myGuardianEntry.challenge}</pre>
-              <label className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">Guardian signature</label>
-              <textarea
-                value={signature}
-                onChange={(e) => setSignature(e.target.value)}
-                placeholder="Paste signed challenge"
-                rows={3}
-                className="w-full rounded border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-              />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={saving || request.status !== "pending" || myGuardianEntry.status !== "pending"}
-                  onClick={() => submitDecision("approve")}
-                  className="rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-                >
-                  {saving ? "Submitting..." : "Approve"}
-                </button>
-                <button
-                  type="button"
-                  disabled={saving || request.status !== "pending" || myGuardianEntry.status !== "pending"}
-                  onClick={() => submitDecision("reject")}
-                  className="rounded bg-red-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-                >
-                  {saving ? "Submitting..." : "Reject"}
-                </button>
-              </div>
-              {actionError && <p className="text-sm text-red-600">{actionError}</p>}
-              {actionSuccess && <p className="text-sm text-emerald-700">{actionSuccess}</p>}
+        {request && (
+          <section className="space-y-5 rounded-xl border border-[rgb(122_27_122_/_0.35)] bg-[linear-gradient(160deg,rgba(65,8,65,0.45),rgba(10,10,10,0.92))] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+            <div className="grid gap-2 text-sm text-[#D6BCE5] md:grid-cols-2">
+              <p><span className="font-medium text-[#F3E9FA]">Request ID:</span> {request.id}</p>
+              <p><span className="font-medium text-[#F3E9FA]">Wallet:</span> {request.walletId}</p>
+              <p><span className="font-medium text-[#F3E9FA]">Requester:</span> {request.requesterEmail}</p>
+              <p><span className="font-medium text-[#F3E9FA]">Status:</span> {request.status}</p>
+              <p className="md:col-span-2"><span className="font-medium text-[#F3E9FA]">Expires:</span> {request.expiresAt}</p>
+              <p className="md:col-span-2 text-[#BDA9CC]">{request.reason}</p>
             </div>
-          ) : (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">You are not listed as a guardian for this request.</p>
-          )}
-        </section>
-      )}
+
+            <div>
+              <h2 className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-[#D6BCE5]">Guardian approvals</h2>
+              <ul className="space-y-2 text-sm">
+                {request.guardians.map((g) => (
+                  <li key={g.email} className="rounded-lg border border-[rgb(122_27_122_/_0.4)] bg-[rgb(10_10_10_/_0.65)] px-3 py-2 text-[#D6BCE5]">
+                    {g.email} ({g.address}) - <span className="font-medium text-[#F3E9FA]">{g.status}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {myGuardianEntry ? (
+              <div className="space-y-3 rounded-lg border border-[rgb(122_27_122_/_0.45)] bg-[rgb(10_10_10_/_0.7)] p-4">
+                <p className="text-xs text-[#BDA9CC]">
+                  Sign this challenge with your guardian wallet:
+                </p>
+                <pre className="overflow-auto rounded-lg border border-[rgb(122_27_122_/_0.45)] bg-[rgb(10_10_10_/_0.82)] p-3 text-xs text-[#D6BCE5]">{myGuardianEntry.challenge}</pre>
+                <label className="mb-1 block text-sm text-[#BDA9CC]">Guardian signature</label>
+                <textarea
+                  value={signature}
+                  onChange={(e) => setSignature(e.target.value)}
+                  placeholder="Paste signed challenge"
+                  rows={3}
+                  className="w-full rounded-lg border border-[rgb(122_27_122_/_0.45)] bg-[rgb(10_10_10_/_0.8)] px-3 py-2 text-[#EBDDF7] placeholder:text-[#9D86B2]"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={saving || request.status !== "pending" || myGuardianEntry.status !== "pending"}
+                    onClick={() => submitDecision("approve")}
+                    className="rounded border border-emerald-500/70 bg-emerald-900/40 px-4 py-2 text-sm font-medium text-emerald-100 transition-colors hover:bg-emerald-800/50 disabled:opacity-50"
+                  >
+                    {saving ? "Submitting..." : "Approve"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={saving || request.status !== "pending" || myGuardianEntry.status !== "pending"}
+                    onClick={() => submitDecision("reject")}
+                    className="rounded border border-rose-500/70 bg-rose-900/40 px-4 py-2 text-sm font-medium text-rose-100 transition-colors hover:bg-rose-800/50 disabled:opacity-50"
+                  >
+                    {saving ? "Submitting..." : "Reject"}
+                  </button>
+                </div>
+                {actionError && <p className="text-sm text-[#FF8CA9]">{actionError}</p>}
+                {actionSuccess && <p className="text-sm text-[#6FE6B4]">{actionSuccess}</p>}
+              </div>
+            ) : (
+              <p className="text-sm text-[#BDA9CC]">You are not listed as a guardian for this request.</p>
+            )}
+          </section>
+        )}
+      </section>
     </main>
   );
 }

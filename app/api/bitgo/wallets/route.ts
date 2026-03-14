@@ -6,6 +6,11 @@ import { listWalletIdsByOwner } from '@/lib/walletOwnersDb';
 
 type BitGo = Awaited<ReturnType<typeof getBitGo>>;
 
+type WalletListResult = {
+  wallets?: unknown[];
+  nextBatchPrevId?: string;
+};
+
 export async function GET(request: Request) {
   try {
     const identity = getRequestIdentity(request);
@@ -26,11 +31,57 @@ export async function GET(request: Request) {
       );
     }
 
-    const bitgo: BitGo = await getBitGo();
-    const walletsApi = (bitgo as unknown as { coin(name: string): { wallets(): { list(params?: { limit?: number; skip?: number; prevId?: string }): Promise<{ wallets: unknown[] }> } } }).coin(coin).wallets();
-    const result = await walletsApi.list({ limit: 100 });
     const allowedWalletIds = new Set(await listWalletIdsByOwner(identity.email));
-    const wallets = (result?.wallets ?? []).filter((wallet) => {
+    if (allowedWalletIds.size === 0) {
+      return NextResponse.json({ wallets: [], coin });
+    }
+
+    const bitgo: BitGo = await getBitGo();
+    const walletsApi = (bitgo as unknown as {
+      coin(name: string): {
+        wallets(): {
+          list(params?: { limit?: number; skip?: number; prevId?: string }): Promise<WalletListResult>;
+        };
+      };
+    }).coin(coin).wallets();
+
+    const allWallets: unknown[] = [];
+    const seenWalletIds = new Set<string>();
+    let prevId: string | undefined;
+
+    for (let page = 0; page < 25; page += 1) {
+      const result = await walletsApi.list({ limit: 100, ...(prevId ? { prevId } : {}) });
+      const pageWallets = result?.wallets ?? [];
+
+      if (pageWallets.length === 0) {
+        break;
+      }
+
+      for (const wallet of pageWallets) {
+        const walletId =
+          typeof wallet === 'object' && wallet !== null && 'id' in wallet
+            ? (wallet as { id?: unknown }).id
+            : undefined;
+
+        if (typeof walletId !== 'string') {
+          continue;
+        }
+
+        if (seenWalletIds.has(walletId)) {
+          continue;
+        }
+
+        seenWalletIds.add(walletId);
+        allWallets.push(wallet);
+      }
+
+      prevId = typeof result?.nextBatchPrevId === 'string' ? result.nextBatchPrevId : undefined;
+      if (!prevId) {
+        break;
+      }
+    }
+
+    const wallets = allWallets.filter((wallet) => {
       const walletId =
         typeof wallet === 'object' && wallet !== null && 'id' in wallet
           ? (wallet as { id?: unknown }).id
@@ -50,5 +101,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
-

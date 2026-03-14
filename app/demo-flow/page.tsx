@@ -35,30 +35,56 @@ const steps = [
 
 export default function DemoFlowPage() {
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10 text-zinc-900 dark:text-zinc-100">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Hackathon Demo Flow</h1>
-        <Link href="/" className="text-sm text-blue-600 hover:underline">
-          Dashboard
-        </Link>
-      </div>
+    <main className="relative min-h-screen overflow-hidden bg-black px-4 py-12 text-[#EBDDF7] sm:px-8">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+          backgroundSize: "72px 72px",
+        }}
+      />
+      <div className="pointer-events-none absolute -top-28 left-1/2 h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-[rgb(122_27_122_/_0.25)] blur-3xl" />
 
-      <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
-        Run these routes in sequence during your demo to show normal operations, key-loss recovery,
-        and auditability.
-      </p>
+      <section className="relative z-10 mx-auto max-w-5xl">
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4 border-b border-[rgb(122_27_122_/_0.35)] pb-6">
+          <div>
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.35em] text-[#BDA9CC]">SmartVault Runbook</p>
+            <h1 className="text-4xl font-semibold tracking-tight text-[#F3E9FA] md:text-5xl">Hackathon Demo Flow</h1>
+            <p className="mt-4 max-w-2xl text-sm text-[#C6B2D6] md:text-base">
+              Execute these routes in order to show standard transactions, compromised-key recovery, guardian consensus,
+              and audit trail proof.
+            </p>
+          </div>
 
-      <ul className="space-y-3">
-        {steps.map((step) => (
-          <li key={step.path} className="rounded border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="font-medium">{step.title}</p>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{step.description}</p>
-            <Link href={step.path} className="mt-2 inline-block text-sm text-blue-600 hover:underline">
-              Open {step.path}
-            </Link>
-          </li>
-        ))}
-      </ul>
+          <Link
+            href="/dashboard"
+            className="inline-flex h-11 items-center border border-[rgb(122_27_122_/_0.6)] bg-[rgb(65_8_65_/_0.4)] px-5 font-mono text-xs uppercase tracking-[0.2em] text-[#EBDDF7] transition-colors hover:border-[rgb(122_27_122)] hover:bg-[rgb(122_27_122_/_0.3)]"
+          >
+            Open Dashboard
+          </Link>
+        </div>
+
+        <ul className="grid gap-4 md:grid-cols-2">
+          {steps.map((step) => (
+            <li
+              key={step.path}
+              className="group relative overflow-hidden border border-[rgb(122_27_122_/_0.35)] bg-[linear-gradient(160deg,rgba(65,8,65,0.45),rgba(10,10,10,0.92))] p-5 transition-colors hover:border-[rgb(122_27_122_/_0.75)]"
+            >
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[rgb(214,188,229)]/80 to-transparent opacity-60" />
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#BDA9CC]">Demo Step</p>
+              <h2 className="mt-2 text-lg font-semibold tracking-tight text-[#F3E9FA]">{step.title}</h2>
+              <p className="mt-3 text-sm text-[#C6B2D6]">{step.description}</p>
+              <Link
+                href={step.path}
+                className="mt-4 inline-flex items-center font-mono text-xs uppercase tracking-[0.2em] text-[#D6BCE5] transition-colors group-hover:text-white"
+              >
+                Open Route {step.path}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

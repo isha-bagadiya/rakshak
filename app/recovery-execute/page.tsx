@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 const GAS_BUFFER_ETH = "0.00012";
-const GAS_BUFFER_WEI = 120000000000000n;
+const GAS_BUFFER_WEI = BigInt("120000000000000");
+const ZERO_WEI = BigInt(0);
+const TEN_WEI = BigInt(10);
+const ETH_DECIMALS = BigInt(18);
+const WEI_PER_ETH = TEN_WEI ** ETH_DECIMALS;
 
 type RecoveryGuardian = {
   email: string;
@@ -41,20 +45,20 @@ function parseEthToWei(input: string): string | null {
   if (fracPartRaw.length > 18) return null;
 
   const fracPart = fracPartRaw.padEnd(18, "0");
-  const wholeWei = BigInt(wholePart) * 10n ** 18n;
+  const wholeWei = BigInt(wholePart) * WEI_PER_ETH;
   const fracWei = BigInt(fracPart || "0");
   const wei = wholeWei + fracWei;
-  return wei > 0n ? wei.toString() : null;
+  return wei > ZERO_WEI ? wei.toString() : null;
 }
 
 function formatWeiToEth(value: string | null): string {
   if (!value) return "n/a";
   try {
     const wei = BigInt(value);
-    const sign = wei < 0n ? "-" : "";
-    const abs = wei < 0n ? -wei : wei;
-    const whole = abs / 10n ** 18n;
-    const fraction = (abs % 10n ** 18n).toString().padStart(18, "0").replace(/0+$/, "");
+    const sign = wei < ZERO_WEI ? "-" : "";
+    const abs = wei < ZERO_WEI ? -wei : wei;
+    const whole = abs / WEI_PER_ETH;
+    const fraction = (abs % WEI_PER_ETH).toString().padStart(18, "0").replace(/0+$/, "");
     return `${sign}${whole.toString()}${fraction ? `.${fraction}` : ""} ETH`;
   } catch {
     return "n/a";
@@ -125,7 +129,7 @@ export default function RecoveryExecutePage() {
     if (!resolvedAmountBaseUnits || !walletBalance?.spendableBalanceString) return false;
     try {
       const spendable = BigInt(walletBalance.spendableBalanceString);
-      const maxAfterBuffer = spendable > GAS_BUFFER_WEI ? spendable - GAS_BUFFER_WEI : 0n;
+      const maxAfterBuffer = spendable > GAS_BUFFER_WEI ? spendable - GAS_BUFFER_WEI : ZERO_WEI;
       return BigInt(resolvedAmountBaseUnits) > maxAfterBuffer;
     } catch {
       return false;
@@ -181,7 +185,7 @@ export default function RecoveryExecutePage() {
     if (walletBalance?.spendableBalanceString) {
       try {
         const spendable = BigInt(walletBalance.spendableBalanceString);
-        const maxAfterBuffer = spendable > GAS_BUFFER_WEI ? spendable - GAS_BUFFER_WEI : 0n;
+        const maxAfterBuffer = spendable > GAS_BUFFER_WEI ? spendable - GAS_BUFFER_WEI : ZERO_WEI;
         if (BigInt(resolvedAmountBaseUnits) > maxAfterBuffer) {
           setExecuteError(`Amount exceeds max sendable after gas buffer (${GAS_BUFFER_ETH} ETH).`);
           return;
