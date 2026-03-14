@@ -65,6 +65,17 @@ The app now requires Privy sign-in before showing the existing BitGo wallet and 
    - `ENTERPRISE_ID`
    - `BITGO_EXPRESS_URL` (optional, for when you run BitGo Express)
    - `BITGO_COIN` (optional; this app uses **Arbitrum Testnet** only, `tarbeth`)
+   - `BACKUP_KEY_ENCRYPTION_SECRET` (required; used to encrypt backup private key before saving)
+   - `MONGODB_URI` (required; MongoDB connection string)
+   - `MONGODB_DB_NAME` (required; database name where backup key records are stored)
+   - `APP_BASE_URL` (required for email links, e.g. `http://localhost:3000`)
+   - `SMTP_HOST` (optional but recommended; SMTP server host)
+   - `SMTP_PORT` (optional but recommended; SMTP server port, e.g. `587`)
+   - `SMTP_SECURE` (optional; `true` for implicit TLS/465, otherwise `false`)
+   - `SMTP_USER` (optional but recommended; SMTP username)
+   - `SMTP_PASS` (optional but recommended; SMTP app password/credential)
+   - `EMAIL_FROM` (optional but recommended; sender identity for emails)
+   - `RECOVERY_REQUEST_EXPIRY_HOURS` (optional; default `24`)
 4. Install dependencies (if not already done):
 
    ```bash

@@ -1,0 +1,50 @@
+[
+  {
+    "eventType": "normal_transfer",
+    "status": "failed",
+    "actorEmail": "valahiral563@gmail.com",
+    "walletId": "69b48eb84f1baf6e17a94090f1595afc",
+    "coin": "tarbeth",
+    "recipientAddress": "0xA8fC4624a786567DbA01Cf97Ab7888212C930673",
+    "amountBaseUnits": "10000000000000",
+    "error": "insufficient balance",
+    "id": "7c931cf5-d98d-4529-a214-fbefa273b6ec",
+    "createdAt": "2026-03-13T22:35:04.280Z"
+  },
+  {
+    "eventType": "normal_transfer",
+    "status": "failed",
+    "actorEmail": "valahiral563@gmail.com",
+    "walletId": "69b48eb84f1baf6e17a94090f1595afc",
+    "coin": "tarbeth",
+    "recipientAddress": "0xe05b14b38c42d98ca444d1bdf8b3c9ec6b5aeea4",
+    "amountBaseUnits": "10000000000000",
+    "error": "insufficient balance",
+    "id": "2c375485-eb46-488e-a653-7c73b9f329f4",
+    "createdAt": "2026-03-13T22:36:38.432Z"
+  },
+  {
+    "eventType": "normal_transfer",
+    "status": "failed",
+    "actorEmail": "valahiral563@gmail.com",
+    "walletId": "69b48eb84f1baf6e17a94090f1595afc",
+    "coin": "tarbeth",
+    "recipientAddress": "0xe05b14b38c42d98ca444d1bdf8b3c9ec6b5aeea4",
+    "amountBaseUnits": "10000000000000",
+    "error": "insufficient balance",
+    "id": "1901f782-de23-42a6-b0fd-926b7f346da3",
+    "createdAt": "2026-03-13T22:45:12.753Z"
+  },
+  {
+    "eventType": "normal_transfer",
+    "status": "failed",
+    "actorEmail": "valahiral563@gmail.com",
+    "walletId": "69b48eb84f1baf6e17a94090f1595afc",
+    "coin": "tarbeth",
+    "recipientAddress": "0x7C81c3d1241Cc5d6d46b53a0a67e67c9610a7653",
+    "amountBaseUnits": "10000000000000000000000",
+    "error": "insufficient balance",
+    "id": "bd32f7ae-294c-48eb-825b-afc99eb93fb7",
+    "createdAt": "2026-03-13T23:11:06.418Z"
+  }
+]

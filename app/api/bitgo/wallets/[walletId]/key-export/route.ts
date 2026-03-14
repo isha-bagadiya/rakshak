@@ -38,9 +38,9 @@ export async function POST(
     return NextResponse.json({
       walletId: id,
       exportedAt: new Date().toISOString(),
-      keychains: exported.payload,
+      userKeychain: exported.payload.userKeychain,
       _warning:
-        'This key export is one-time only and has now been consumed. Store it in a secure vault immediately.',
+        'This user key export is one-time only and has now been consumed. Store it in a secure vault immediately.',
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to export keys';
@@ -48,4 +48,3 @@ export async function POST(
     return NextResponse.json({ error: message }, { status });
   }
 }
-

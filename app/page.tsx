@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
+import Link from "next/link";
 
 /** Arbitrum Testnet only (BitGo: tarbeth). */
 const COIN = "tarbeth";
@@ -18,6 +19,11 @@ type WalletItem = {
 type GuardiansState = {
   guardians: string[];
   threshold: number;
+};
+
+type GuardianSetupInput = {
+  address: string;
+  email: string;
 };
 
 export default function Home() {
@@ -58,11 +64,16 @@ export default function Home() {
   const [guardianAddressInput, setGuardianAddressInput] = useState("");
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState<string | null>(null);
-  const [guardianSetupInputs, setGuardianSetupInputs] = useState<string[]>(["", "", ""]);
+  const [guardianSetupInputs, setGuardianSetupInputs] = useState<GuardianSetupInput[]>([
+    { address: "", email: "" },
+    { address: "", email: "" },
+    { address: "", email: "" },
+  ]);
   const [guardianSetupCompleted, setGuardianSetupCompleted] = useState(false);
   const [guardianSetupLoading, setGuardianSetupLoading] = useState(false);
   const [guardianSetupError, setGuardianSetupError] = useState<string | null>(null);
   const [guardianSetupSuccess, setGuardianSetupSuccess] = useState<string | null>(null);
+  const [receiverAddressInput, setReceiverAddressInput] = useState("");
 
   const [walletsList, setWalletsList] = useState<WalletItem[]>([]);
   const [walletsLoading, setWalletsLoading] = useState(true);
@@ -158,7 +169,11 @@ export default function Home() {
   useEffect(() => {
     if (!authenticated) {
       setGuardianSetupCompleted(false);
-      setGuardianSetupInputs(["", "", ""]);
+      setGuardianSetupInputs([
+        { address: "", email: "" },
+        { address: "", email: "" },
+        { address: "", email: "" },
+      ]);
       setGuardianSetupError(null);
       setGuardianSetupSuccess(null);
       return;
@@ -176,14 +191,26 @@ export default function Home() {
           setGuardianSetupError(data.error);
           return;
         }
-        const guardians = Array.isArray(data?.guardians) ? (data.guardians as string[]) : [];
+        const guardians = Array.isArray(data?.guardians)
+          ? (data.guardians as Array<{ address?: string; email?: string }>)
+          : [];
         const completed = Boolean(data?.completed) && guardians.length === MAX_GUARDIANS;
         setGuardianSetupCompleted(completed);
         setGuardianSetupInputs([
-          guardians[0] ?? "",
-          guardians[1] ?? "",
-          guardians[2] ?? "",
+          {
+            address: guardians[0]?.address ?? "",
+            email: guardians[0]?.email ?? "",
+          },
+          {
+            address: guardians[1]?.address ?? "",
+            email: guardians[1]?.email ?? "",
+          },
+          {
+            address: guardians[2]?.address ?? "",
+            email: guardians[2]?.email ?? "",
+          },
         ]);
+        setReceiverAddressInput(guardians[0]?.address ?? "");
       })
       .catch((err) => {
         if (!cancelled) {
@@ -200,15 +227,24 @@ export default function Home() {
     };
   }, [authenticated, authHeaders]);
 
-  function updateGuardianSetupInput(index: number, value: string) {
-    setGuardianSetupInputs((prev) => prev.map((item, idx) => (idx === index ? value : item)));
+  function updateGuardianSetupInput(
+    index: number,
+    key: keyof GuardianSetupInput,
+    value: string,
+  ) {
+    setGuardianSetupInputs((prev) =>
+      prev.map((item, idx) => (idx === index ? { ...item, [key]: value } : item)),
+    );
   }
 
   async function handleSaveGuardianSetup(e: React.FormEvent) {
     e.preventDefault();
-    const guardians = guardianSetupInputs.map((g) => g.trim());
-    if (guardians.some((g) => !g)) {
-      setGuardianSetupError("Please enter all 3 guardian wallet addresses.");
+    const guardians = guardianSetupInputs.map((g) => ({
+      address: g.address.trim(),
+      email: g.email.trim().toLowerCase(),
+    }));
+    if (guardians.some((g) => !g.address || !g.email)) {
+      setGuardianSetupError("Please enter all 3 guardian wallet addresses and guardian emails.");
       setGuardianSetupSuccess(null);
       return;
     }
@@ -228,8 +264,15 @@ export default function Home() {
         return;
       }
       setGuardianSetupCompleted(true);
-      const saved = Array.isArray(data?.guardians) ? (data.guardians as string[]) : guardians;
-      setGuardianSetupInputs([saved[0] ?? "", saved[1] ?? "", saved[2] ?? ""]);
+      const saved = Array.isArray(data?.guardians)
+        ? (data.guardians as GuardianSetupInput[])
+        : guardians;
+      setGuardianSetupInputs([
+        { address: saved[0]?.address ?? "", email: saved[0]?.email ?? "" },
+        { address: saved[1]?.address ?? "", email: saved[1]?.email ?? "" },
+        { address: saved[2]?.address ?? "", email: saved[2]?.email ?? "" },
+      ]);
+      setReceiverAddressInput((prev) => prev.trim() || (saved[0]?.address ?? ""));
       setGuardianSetupSuccess("Guardian setup completed. You can now create wallet.");
     } catch (err) {
       setGuardianSetupError(err instanceof Error ? err.message : "Network or unknown error");
@@ -263,7 +306,11 @@ export default function Home() {
       const res = await fetch("/api/bitgo/wallets/generate", {
         method: "POST",
         headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ label: label.trim() || "My Wallet", coin: COIN }),
+        body: JSON.stringify({
+          label: label.trim() || "My Wallet",
+          coin: COIN,
+          receiverAddress: receiverAddressInput.trim() || undefined,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -515,11 +562,31 @@ export default function Home() {
         <p className="mb-8 text-zinc-600 dark:text-zinc-400">
           Create a 2-of-3 multisig hot wallet on <strong>Arbitrum Testnet</strong> (tarbeth) and receive addresses.
         </p>
+        <div className="mb-6 flex flex-wrap gap-3">
+          <Link href="/demo-flow" className="text-sm text-blue-600 hover:underline">
+            Open Demo Flow
+          </Link>
+          <Link href="/transfer" className="text-sm text-blue-600 hover:underline">
+            Open Normal Transfer
+          </Link>
+          <Link href="/recover-address" className="text-sm text-blue-600 hover:underline">
+            Open Recovery Request Page
+          </Link>
+          <Link href="/guardian/requests" className="text-sm text-blue-600 hover:underline">
+            Open Guardian Requests
+          </Link>
+          <Link href="/recovery-execute" className="text-sm text-blue-600 hover:underline">
+            Open Recovery Transfer
+          </Link>
+          <Link href="/audit" className="text-sm text-blue-600 hover:underline">
+            Open Audit Timeline
+          </Link>
+        </div>
 
         <section className="mb-10 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-4 text-lg font-medium">Step 1: Add 3 guardians</h2>
           <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-            Before wallet creation, add exactly 3 guardian wallet addresses.
+            Before wallet creation, add exactly 3 guardian wallet addresses and guardian emails.
           </p>
           <form onSubmit={handleSaveGuardianSetup} className="space-y-3">
             {guardianSetupInputs.map((value, index) => (
@@ -533,13 +600,43 @@ export default function Home() {
                 <input
                   id={`guardian-setup-${index}`}
                   type="text"
-                  value={value}
-                  onChange={(e) => updateGuardianSetupInput(index, e.target.value)}
+                  value={value.address}
+                  onChange={(e) => updateGuardianSetupInput(index, "address", e.target.value)}
                   placeholder="0x..."
+                  className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+                <label
+                  htmlFor={`guardian-setup-email-${index}`}
+                  className="mb-1 mt-2 block text-sm text-zinc-600 dark:text-zinc-400"
+                >
+                  Guardian {index + 1} email
+                </label>
+                <input
+                  id={`guardian-setup-email-${index}`}
+                  type="email"
+                  value={value.email}
+                  onChange={(e) => updateGuardianSetupInput(index, "email", e.target.value)}
+                  placeholder="guardian@example.com"
                   className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                 />
               </div>
             ))}
+            <div>
+              <label
+                htmlFor="receiver-address"
+                className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400"
+              >
+                Receiver address (optional, fallback destination)
+              </label>
+              <input
+                id="receiver-address"
+                type="text"
+                value={receiverAddressInput}
+                onChange={(e) => setReceiverAddressInput(e.target.value)}
+                placeholder="0x... (defaults to Guardian 1)"
+                className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+            </div>
             <button
               type="submit"
               disabled={guardianSetupLoading}
@@ -701,7 +798,7 @@ export default function Home() {
                     disabled={keyExportLoading}
                     className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                   >
-                    {keyExportLoading ? "Exporting..." : "Export keys once"}
+                    {keyExportLoading ? "Exporting..." : "Export user key once"}
                   </button>
                   {keyExportError && (
                     <p className="text-sm text-red-600 dark:text-red-400">{keyExportError}</p>

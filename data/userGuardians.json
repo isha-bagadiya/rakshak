@@ -1,10 +1,19 @@
 {
   "valahiral563@gmail.com": {
     "guardians": [
-      "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
-      "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
-      "0x7765c41D3594b034e3D1E0742386844d46e9E496"
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "itshermirror@gmail.com"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "hiralvala@lampros.tech"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com"
+      }
     ],
-    "updatedAt": "2026-03-13T16:03:52.273Z"
+    "updatedAt": "2026-03-13T22:24:41.992Z"
   }
 }

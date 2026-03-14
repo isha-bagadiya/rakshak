@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getRequestIdentity } from '@/lib/requestIdentity';
-import { getUserGuardians, saveUserGuardians } from '@/lib/userGuardiansDb';
+import {
+  getUserGuardians,
+  hasRequiredUserGuardians,
+  saveUserGuardians,
+  type GuardianContact,
+} from '@/lib/userGuardiansDb';
 
 export async function GET(request: Request) {
   try {
@@ -13,10 +18,11 @@ export async function GET(request: Request) {
     }
 
     const profile = await getUserGuardians(identity.email);
+    const completed = await hasRequiredUserGuardians(identity.email);
     return NextResponse.json({
       guardians: profile?.guardians ?? [],
       updatedAt: profile?.updatedAt ?? null,
-      completed: (profile?.guardians?.length ?? 0) === 3,
+      completed,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to load guardian profile';
@@ -37,8 +43,17 @@ export async function PUT(request: Request) {
     const body = await request.json().catch(() => ({}));
     const guardiansRaw = Array.isArray(body.guardians) ? body.guardians : [];
     const guardians = guardiansRaw
-      .map((value: unknown) => (typeof value === 'string' ? value.trim() : ''))
-      .filter(Boolean);
+      .map((value: unknown): GuardianContact | null => {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+          return null;
+        }
+        const maybe = value as { address?: unknown; email?: unknown };
+        const address = typeof maybe.address === 'string' ? maybe.address.trim() : '';
+        const email = typeof maybe.email === 'string' ? maybe.email.trim().toLowerCase() : '';
+        if (!address || !email) return null;
+        return { address, email };
+      })
+      .filter((value): value is GuardianContact => Boolean(value));
 
     const profile = await saveUserGuardians(identity.email, guardians);
     return NextResponse.json({
@@ -51,4 +66,3 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
-

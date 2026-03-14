@@ -3,14 +3,20 @@ import { getBitGo, getDefaultCoin, isAllowedCoin } from '@/lib/bitgo';
 import { toUserMessage } from '@/lib/bitgoErrors';
 import { getRequestIdentity } from '@/lib/requestIdentity';
 import { setWalletOwner } from '@/lib/walletOwnersDb';
-import { hasRequiredUserGuardians } from '@/lib/userGuardiansDb';
+import { getRequiredUserGuardians, hasRequiredUserGuardians } from '@/lib/userGuardiansDb';
 import { saveKeyExportRecord } from '@/lib/keyExportDb';
+import { encryptBackupPrivateKey } from '@/lib/backupKeyCrypto';
+import { storeBackupKeyRecord } from '@/lib/backupKeyStore';
 
 const LABEL_MAX_LENGTH = 256;
 
 type BitGo = Awaited<ReturnType<typeof getBitGo>>;
 type PublicKeychain = { id: string; pub: string; encryptedPrv: string };
 type PrivateMaterial = { userPrv: string; backupPrv: string };
+
+function isValidEvmAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(address.trim());
+}
 
 function getWalletIdFromResult(result: { wallet: unknown }): string | null {
   const wallet = result.wallet;
@@ -111,6 +117,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const label = typeof body.label === 'string' ? body.label.trim() : '';
     const coin = typeof body.coin === 'string' ? body.coin.trim().toLowerCase() : getDefaultCoin();
+    const receiverAddress = typeof body.receiverAddress === 'string' ? body.receiverAddress.trim() : '';
 
     if (!label) {
       return NextResponse.json(
@@ -130,6 +137,12 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    if (receiverAddress && !isValidEvmAddress(receiverAddress)) {
+      return NextResponse.json(
+        { error: 'Invalid "receiverAddress". Must be a valid EVM address.' },
+        { status: 400 },
+      );
+    }
 
     const hasGuardians = await hasRequiredUserGuardians(identity.email);
     if (!hasGuardians) {
@@ -138,6 +151,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    const guardians = await getRequiredUserGuardians(identity.email);
+    const receiver = receiverAddress || guardians[0].address;
 
     const enterprise = process.env.ENTERPRISE_ID;
     const passphrase = process.env.WALLET_PASSPHRASE;
@@ -165,6 +180,17 @@ export async function POST(request: Request) {
     let keyExportExpiresAt: string | null = null;
     if (walletId) {
       await setWalletOwner(walletId, identity.email);
+      await storeBackupKeyRecord({
+        walletId,
+        ownerEmail: identity.email,
+        coin,
+        backupKeychainId: result.backupKeychain.id,
+        backupPub: result.backupKeychain.pub,
+        backupEncryptedPrv: result.backupKeychain.encryptedPrv,
+        encryptedBackupPrv: encryptBackupPrivateKey(result.privateMaterial.backupPrv),
+        guardians,
+        receiverAddress: receiver,
+      });
       const exportRecord = await saveKeyExportRecord({
         walletId,
         ownerEmail: identity.email,
@@ -173,10 +199,6 @@ export async function POST(request: Request) {
             ...result.userKeychain,
             prv: result.privateMaterial.userPrv,
           },
-          backupKeychain: {
-            ...result.backupKeychain,
-            prv: result.privateMaterial.backupPrv,
-          },
         },
       });
       keyExportExpiresAt = exportRecord.expiresAt;
@@ -184,8 +206,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       wallet: result.wallet,
-      userKeychain: result.userKeychain,
-      backupKeychain: result.backupKeychain,
       bitgoKeychain: result.bitgoKeychain,
       keyExport: walletId
         ? {

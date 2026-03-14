@@ -1,18 +1,229 @@
 {
-  "69b306a545cd8974a529ebf254fdb133": [
-    {
-      "id": "43395a11-9f13-42cf-809e-89695362daee",
-      "walletId": "69b306a545cd8974a529ebf254fdb133",
-      "reason": "lost key",
-      "guardians": [
-        "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
-        "0x7765c41D3594b034e3D1E0742386844d46e9E496"
-      ],
-      "threshold": 2,
-      "approvals": [],
-      "status": "pending",
-      "createdAt": "2026-03-12T19:25:00.039Z",
-      "updatedAt": "2026-03-12T19:25:00.039Z"
-    }
-  ]
+  "93742786-e85c-4a52-af64-8a9cfb57cc34": {
+    "id": "93742786-e85c-4a52-af64-8a9cfb57cc34",
+    "walletId": "69b46f654e62e3aa3ccebb238aaba6b1",
+    "requesterEmail": "valahiral563@gmail.com",
+    "reason": "Lost key",
+    "status": "pending",
+    "requiredApprovals": 2,
+    "createdAt": "2026-03-13T20:13:07.430Z",
+    "updatedAt": "2026-03-13T20:13:07.430Z",
+    "expiresAt": "2026-03-14T20:13:07.430Z",
+    "guardians": [
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "bagadiyaisha@gmail.com",
+        "challenge": "RECOVER:69b46f654e62e3aa3ccebb238aaba6b1:bagadiyaisha@gmail.com:9f409640dd42e1af0aabc6c16bc4e15d",
+        "status": "pending"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "ishabagadiya@lampros.tech",
+        "challenge": "RECOVER:69b46f654e62e3aa3ccebb238aaba6b1:ishabagadiya@lampros.tech:f9cd728cacf04d05281c25899c419f9f",
+        "status": "pending"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com",
+        "challenge": "RECOVER:69b46f654e62e3aa3ccebb238aaba6b1:ishab1105@gmail.com:edd57e422190f01da55bdefd6658fcd6",
+        "status": "pending"
+      }
+    ]
+  },
+  "5f290db3-5611-407e-8882-652ff0bfa67c": {
+    "id": "5f290db3-5611-407e-8882-652ff0bfa67c",
+    "walletId": "69b473b54e62e3aa3cd11657cfa0de5f",
+    "requesterEmail": "valahiral563@gmail.com",
+    "reason": "Slept",
+    "status": "pending",
+    "requiredApprovals": 2,
+    "createdAt": "2026-03-13T20:30:20.467Z",
+    "updatedAt": "2026-03-13T20:30:20.467Z",
+    "expiresAt": "2026-03-14T20:30:20.467Z",
+    "guardians": [
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "bagadiyaisha@gmail.com",
+        "challenge": "RECOVER:69b473b54e62e3aa3cd11657cfa0de5f:bagadiyaisha@gmail.com:df52a71e43b5113914b32237d2a86182",
+        "status": "pending"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "ishabagadiya@lampros.tech",
+        "challenge": "RECOVER:69b473b54e62e3aa3cd11657cfa0de5f:ishabagadiya@lampros.tech:46559c9ad310021b665e04c948e44358",
+        "status": "pending"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com",
+        "challenge": "RECOVER:69b473b54e62e3aa3cd11657cfa0de5f:ishab1105@gmail.com:dbc05e00fdf6c2d7923b59b8e2ca017f",
+        "status": "pending"
+      }
+    ]
+  },
+  "b00886ec-8352-4918-b52a-5715656b0908": {
+    "id": "b00886ec-8352-4918-b52a-5715656b0908",
+    "walletId": "69b47312e51f752808955c72ddeda342",
+    "requesterEmail": "valahiral563@gmail.com",
+    "reason": "Email test",
+    "status": "pending",
+    "requiredApprovals": 2,
+    "createdAt": "2026-03-13T20:35:00.622Z",
+    "updatedAt": "2026-03-13T20:35:00.622Z",
+    "expiresAt": "2026-03-14T20:35:00.622Z",
+    "guardians": [
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "bagadiyaisha@gmail.com",
+        "challenge": "RECOVER:69b47312e51f752808955c72ddeda342:bagadiyaisha@gmail.com:a280431f78d234de0f64fa0b28fdcccf",
+        "status": "pending"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "ishabagadiya@lampros.tech",
+        "challenge": "RECOVER:69b47312e51f752808955c72ddeda342:ishabagadiya@lampros.tech:ebf10a18da31408badd928d674f9237f",
+        "status": "pending"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com",
+        "challenge": "RECOVER:69b47312e51f752808955c72ddeda342:ishab1105@gmail.com:8f49703b8d519b753f2635231844c687",
+        "status": "pending"
+      }
+    ]
+  },
+  "d59cceec-c90d-4db8-b2ec-1bf51677a84b": {
+    "id": "d59cceec-c90d-4db8-b2ec-1bf51677a84b",
+    "walletId": "69b47900e3f177189f497117f0fe780f",
+    "requesterEmail": "valahiral563@gmail.com",
+    "reason": "hh",
+    "status": "pending",
+    "requiredApprovals": 2,
+    "createdAt": "2026-03-13T20:52:36.646Z",
+    "updatedAt": "2026-03-13T20:52:36.646Z",
+    "expiresAt": "2026-03-14T20:52:36.646Z",
+    "guardians": [
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "bagadiyaisha@gmail.com",
+        "challenge": "RECOVER:69b47900e3f177189f497117f0fe780f:bagadiyaisha@gmail.com:2749ca983323ffa206cbb281d78aac31",
+        "status": "pending"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "ishabagadiya@lampros.tech",
+        "challenge": "RECOVER:69b47900e3f177189f497117f0fe780f:ishabagadiya@lampros.tech:1c8c1391f194081efe45255e96e131fb",
+        "status": "pending"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com",
+        "challenge": "RECOVER:69b47900e3f177189f497117f0fe780f:ishab1105@gmail.com:7ec474a6abb7d23e9e3fe4991cba637e",
+        "status": "pending"
+      }
+    ]
+  },
+  "647f8e18-dd1b-4997-bb95-bc275cd770b2": {
+    "id": "647f8e18-dd1b-4997-bb95-bc275cd770b2",
+    "walletId": "69b47a2ce3f177189f49c91965036b47",
+    "requesterEmail": "valahiral563@gmail.com",
+    "reason": "hrhrh",
+    "status": "pending",
+    "requiredApprovals": 2,
+    "createdAt": "2026-03-13T20:57:59.755Z",
+    "updatedAt": "2026-03-13T20:59:33.025Z",
+    "expiresAt": "2026-03-14T20:57:59.755Z",
+    "guardians": [
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "itshermirror@gmail.com",
+        "challenge": "RECOVER:69b47a2ce3f177189f49c91965036b47:itshermirror@gmail.com:337be6b416364467c869f010bb1281c1",
+        "status": "approved",
+        "signature": "approved-by-guardian",
+        "decidedAt": "2026-03-13T20:59:33.025Z"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "ishabagadiya@lampros.tech",
+        "challenge": "RECOVER:69b47a2ce3f177189f49c91965036b47:ishabagadiya@lampros.tech:72c7495e7ce4e233a74a0e8682225ae4",
+        "status": "pending"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com",
+        "challenge": "RECOVER:69b47a2ce3f177189f49c91965036b47:ishab1105@gmail.com:cb8d92743df0fbd89bdda9a4e09eb228",
+        "status": "pending"
+      }
+    ]
+  },
+  "3aaf8538-d9ff-48ea-a637-fd7a3aa2eab2": {
+    "id": "3aaf8538-d9ff-48ea-a637-fd7a3aa2eab2",
+    "walletId": "69b47e83e3f177189f4b200b99615b20",
+    "requesterEmail": "valahiral563@gmail.com",
+    "reason": "hh",
+    "status": "approved",
+    "requiredApprovals": 2,
+    "createdAt": "2026-03-13T21:16:51.751Z",
+    "updatedAt": "2026-03-13T21:18:25.226Z",
+    "expiresAt": "2026-03-14T21:16:51.751Z",
+    "guardians": [
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "itshermirror@gmail.com",
+        "challenge": "RECOVER:69b47e83e3f177189f4b200b99615b20:itshermirror@gmail.com:7448c13450b3d4381af2f84b1bacb905",
+        "status": "approved",
+        "signature": "approve",
+        "decidedAt": "2026-03-13T21:18:25.226Z"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "hiralvala@lampros.tech",
+        "challenge": "RECOVER:69b47e83e3f177189f4b200b99615b20:hiralvala@lampros.tech:ab6efe68a253ae0f78e3d442c8b758b6",
+        "status": "approved",
+        "signature": "great",
+        "decidedAt": "2026-03-13T21:18:09.904Z"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com",
+        "challenge": "RECOVER:69b47e83e3f177189f4b200b99615b20:ishab1105@gmail.com:7126d7c37fb40c80f595e6684772c296",
+        "status": "pending"
+      }
+    ]
+  },
+  "afced976-4771-4b28-af7a-798a67e056f5": {
+    "id": "afced976-4771-4b28-af7a-798a67e056f5",
+    "walletId": "69b48eb84f1baf6e17a94090f1595afc",
+    "requesterEmail": "valahiral563@gmail.com",
+    "reason": "Gopi wahu washed the laptop",
+    "status": "approved",
+    "requiredApprovals": 2,
+    "createdAt": "2026-03-14T00:00:06.872Z",
+    "updatedAt": "2026-03-14T00:04:44.153Z",
+    "expiresAt": "2026-03-15T00:00:06.872Z",
+    "guardians": [
+      {
+        "address": "0xBb4c2baB6B2de45F9CC7Ab41087b730Eaa4adE31",
+        "email": "itshermirror@gmail.com",
+        "challenge": "RECOVER:69b48eb84f1baf6e17a94090f1595afc:itshermirror@gmail.com:ec483a950b4d5d0f6dfb18dd0f6a9dc9",
+        "status": "approved",
+        "signature": "Done",
+        "decidedAt": "2026-03-14T00:00:50.187Z"
+      },
+      {
+        "address": "0x0f104E09F8dce4bF2d7ac43B9d22eC39d7f3B124",
+        "email": "hiralvala@lampros.tech",
+        "challenge": "RECOVER:69b48eb84f1baf6e17a94090f1595afc:hiralvala@lampros.tech:5282367a2c4b7f6a68cc1cac7ec24c83",
+        "status": "approved",
+        "signature": "great",
+        "decidedAt": "2026-03-14T00:04:44.153Z"
+      },
+      {
+        "address": "0x7765c41D3594b034e3D1E0742386844d46e9E496",
+        "email": "ishab1105@gmail.com",
+        "challenge": "RECOVER:69b48eb84f1baf6e17a94090f1595afc:ishab1105@gmail.com:a51111bf9f2ec36ff4f0503e8092f48b",
+        "status": "pending"
+      }
+    ]
+  }
 }

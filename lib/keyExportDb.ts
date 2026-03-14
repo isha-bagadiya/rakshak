@@ -9,7 +9,6 @@ type PublicKeychain = {
 
 type KeyExportPayload = {
   userKeychain: PublicKeychain & { prv: string };
-  backupKeychain: PublicKeychain & { prv: string };
 };
 
 type KeyExportRecord = {
@@ -117,4 +116,3 @@ export async function consumeKeyExportRecord(
 
   return { payload: record.payload, expiresAt: record.expiresAt };
 }
-
