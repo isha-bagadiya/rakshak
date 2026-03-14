@@ -1,1 +1,24 @@
-{}
+{
+  "69b5b28c656e9f93da565d0bdc925f39": {
+    "walletId": "69b5b28c656e9f93da565d0bdc925f39",
+    "ownerEmail": "valahiral563@gmail.com",
+    "createdAt": "2026-03-14T19:10:06.699Z",
+    "expiresAt": "2026-03-14T19:40:06.699Z",
+    "payload": {
+      "userKeychain": {
+        "id": "69b5b289810dc0168242aa687bfdc5f9",
+        "pub": "xpub661MyMwAqRbcFtAzcWnHftCGsi1PjaZivMgKAa79jXPgYEmYeVRP1cswWYDX25bKo2M9qo3kPdjG8g7Qr7tHH59qkjEZzVmMRy92pxo65Tr",
+        "ethAddress": "0xdb20d439a055122b99216cf082fe142450f5757b",
+        "source": "user",
+        "type": "independent",
+        "coinSpecific": {
+          "tarbeth": {
+            "feeAddress": "0xdb20d439a055122b99216cf082fe142450f5757b"
+          }
+        },
+        "encryptedPrv": "{\"iv\":\"ulgZRzMtY/HLqreg4xQGbw==\",\"v\":1,\"iter\":10000,\"ks\":256,\"ts\":64,\"mode\":\"ccm\",\"adata\":\"\",\"cipher\":\"aes\",\"salt\":\"vziLVBQqjV8=\",\"ct\":\"ryHyOjCpv4UD6zAVoUHrQ8IoLEVUb4EC6MUiQ48oji2wdQG2r9VxeqV6eTafMvhB/YeKvbD//eIsBjV6disFhiKGd8WOP+MqUWMzUGh9Ad/UJjc738BfhcLU8wJgsdUC8UopQgM9zQ94Is14Bo5U3Rs6a8rpP8E=\"}",
+        "prv": "xprv9s21ZrQH143K3Q6XWVFHJkFYKgAuL7qsZ8kiNBhYBBrhfSSQ6x78TpZTfH1xtigtNLBHQWN6S38MjeXhERk1nejWr7i3rp8xFpfrA336FNp"
+      }
+    }
+  }
+}

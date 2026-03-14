@@ -4,6 +4,7 @@ import path from 'path';
 export type GuardianContact = {
   address: string;
   email: string;
+  ensName?: string;
 };
 
 type UserGuardianProfile = {
@@ -59,6 +60,11 @@ function isValidEvmAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address.trim());
 }
 
+function isValidEnsName(value: string): boolean {
+  const name = value.trim().toLowerCase();
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)*\.eth$/.test(name);
+}
+
 function normalizeGuardian(value: unknown): GuardianContact | null {
   if (typeof value === 'string') {
     return {
@@ -69,10 +75,12 @@ function normalizeGuardian(value: unknown): GuardianContact | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return null;
   }
-  const maybe = value as { address?: unknown; email?: unknown };
+  const maybe = value as { address?: unknown; email?: unknown; ensName?: unknown };
+  const ensName = typeof maybe.ensName === 'string' ? maybe.ensName.trim().toLowerCase() : '';
   return {
     address: typeof maybe.address === 'string' ? maybe.address.trim() : '',
     email: typeof maybe.email === 'string' ? maybe.email.trim().toLowerCase() : '',
+    ensName: ensName || undefined,
   };
 }
 
@@ -93,12 +101,16 @@ export function validateGuardianContacts(guardians: GuardianContact[]): Guardian
   const normalized = guardians.map((g) => ({
     address: g.address.trim(),
     email: g.email.trim().toLowerCase(),
+    ensName: g.ensName?.trim().toLowerCase() || undefined,
   }));
   if (normalized.some((g) => !isValidEvmAddress(g.address))) {
     throw new Error('Each guardian must be a valid EVM address');
   }
   if (normalized.some((g) => !isValidEmail(g.email))) {
     throw new Error('Each guardian must have a valid email address');
+  }
+  if (normalized.some((g) => g.ensName && !isValidEnsName(g.ensName))) {
+    throw new Error('Each guardian ENS name must be a valid .eth name');
   }
 
   const uniqueAddresses = new Set(normalized.map((g) => normalizeAddress(g.address)));

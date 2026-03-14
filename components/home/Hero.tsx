@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { HomeSignInButton } from "./HomeSignInButton";
 import { Button } from "../ui/Button";
+import image from "@/app/assets/Images/image.png";
 
 export const Hero = () => {
   const router = useRouter();
@@ -39,27 +41,16 @@ export const Hero = () => {
           </div>
         </div>
 
-        <div className="relative col-span-12 mt-6 h-fit w-full overflow-hidden bg-gradient-to-br from-[rgb(122_27_122_/_0.55)] to-black p-8 sm:p-10 lg:col-span-4 lg:mt-0 lg:w-[min(100%,28rem)] lg:justify-self-end lg:self-center lg:mr-8 xl:mr-14 xl:p-12">
-          <div className="pointer-events-none absolute left-0 top-0 grid h-full w-full grid-cols-6 grid-rows-6 opacity-15">
-            {Array.from({ length: 36 }).map((_, i) => (
-              <div key={i} className="border-[0.5px] border-white/30" />
-            ))}
-          </div>
-
-          <div className="relative z-10 space-y-8">
-            <div className="space-y-2">
-              <label className="font-mono text-[10px] uppercase tracking-widest text-white/40">Security Model</label>
-              <div className="text-3xl font-bold tracking-tighter text-white sm:text-4xl">BITGO 2 OF 3</div>
-            </div>
-            <div className="space-y-2">
-              <label className="font-mono text-[10px] uppercase tracking-widest text-white/40">Recovery Threshold</label>
-              <div className="text-3xl font-bold tracking-tighter text-white sm:text-4xl">2 OF 3 GUARDIANS</div>
-            </div>
-            <div className="border-t border-white/10 pt-8">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#7A1B7A]">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-[#7A1B7A]" />
-                Execution Mode: Policy-Governed
-              </div>
+        <div className="relative col-span-12 mt-6 w-full lg:col-span-4 lg:mt-0 lg:self-center lg:mr-8 xl:mr-20">
+          <div className="relative z-10 mx-auto w-full max-w-[29rem]">
+            <div className="relative h-[360px] w-full sm:h-[460px] lg:h-[650px]">
+              <Image
+                src={image}
+                alt="Rakshak recovery flow visualization"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
           </div>
         </div>
@@ -67,7 +58,3 @@ export const Hero = () => {
     </section>
   );
 };
-
-
-
-

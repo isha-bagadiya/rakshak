@@ -16,8 +16,9 @@ export type BackupKeyRecord = {
     alg: 'aes-256-gcm';
     keyVersion: string;
   };
-  guardians: Array<{ address: string; email: string }>;
+  guardians: Array<{ address: string; email: string; ensName?: string }>;
   receiverAddress: string;
+  receiverEnsName?: string;
   createdAt: string;
 };
 
@@ -35,8 +36,9 @@ type StoreBackupKeyParams = {
     alg: 'aes-256-gcm';
     keyVersion: string;
   };
-  guardians: Array<{ address: string; email: string }>;
+  guardians: Array<{ address: string; email: string; ensName?: string }>;
   receiverAddress: string;
+  receiverEnsName?: string;
 };
 
 function normalizeEmail(email: string): string {
@@ -72,6 +74,7 @@ export async function storeBackupKeyRecord(params: StoreBackupKeyParams): Promis
     encryptedBackupPrv: params.encryptedBackupPrv,
     guardians: params.guardians,
     receiverAddress: params.receiverAddress.trim(),
+    receiverEnsName: params.receiverEnsName?.trim().toLowerCase() || undefined,
     createdAt: new Date().toISOString(),
   });
   return result.insertedId.toString();

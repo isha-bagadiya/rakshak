@@ -23,7 +23,7 @@ type GuardiansState = {
 };
 
 type GuardianSetupInput = {
-  address: string;
+  addressOrEns: string;
   email: string;
 };
 
@@ -66,9 +66,9 @@ export default function Home() {
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState<string | null>(null);
   const [guardianSetupInputs, setGuardianSetupInputs] = useState<GuardianSetupInput[]>([
-    { address: "", email: "" },
-    { address: "", email: "" },
-    { address: "", email: "" },
+    { addressOrEns: "", email: "" },
+    { addressOrEns: "", email: "" },
+    { addressOrEns: "", email: "" },
   ]);
   const [guardianSetupCompleted, setGuardianSetupCompleted] = useState(false);
   const [guardianSetupLoading, setGuardianSetupLoading] = useState(false);
@@ -171,9 +171,9 @@ export default function Home() {
     if (!authenticated) {
       setGuardianSetupCompleted(false);
       setGuardianSetupInputs([
-        { address: "", email: "" },
-        { address: "", email: "" },
-        { address: "", email: "" },
+        { addressOrEns: "", email: "" },
+        { addressOrEns: "", email: "" },
+        { addressOrEns: "", email: "" },
       ]);
       setGuardianSetupError(null);
       setGuardianSetupSuccess(null);
@@ -193,25 +193,25 @@ export default function Home() {
           return;
         }
         const guardians = Array.isArray(data?.guardians)
-          ? (data.guardians as Array<{ address?: string; email?: string }>)
+          ? (data.guardians as Array<{ address?: string; ensName?: string; email?: string }>)
           : [];
         const completed = Boolean(data?.completed) && guardians.length === MAX_GUARDIANS;
         setGuardianSetupCompleted(completed);
         setGuardianSetupInputs([
           {
-            address: guardians[0]?.address ?? "",
+            addressOrEns: guardians[0]?.ensName ?? guardians[0]?.address ?? "",
             email: guardians[0]?.email ?? "",
           },
           {
-            address: guardians[1]?.address ?? "",
+            addressOrEns: guardians[1]?.ensName ?? guardians[1]?.address ?? "",
             email: guardians[1]?.email ?? "",
           },
           {
-            address: guardians[2]?.address ?? "",
+            addressOrEns: guardians[2]?.ensName ?? guardians[2]?.address ?? "",
             email: guardians[2]?.email ?? "",
           },
         ]);
-        setReceiverAddressInput(guardians[0]?.address ?? "");
+        setReceiverAddressInput(guardians[0]?.ensName ?? guardians[0]?.address ?? "");
       })
       .catch((err) => {
         if (!cancelled) {
@@ -241,11 +241,11 @@ export default function Home() {
   async function handleSaveGuardianSetup(e: React.FormEvent) {
     e.preventDefault();
     const guardians = guardianSetupInputs.map((g) => ({
-      address: g.address.trim(),
+      addressOrEns: g.addressOrEns.trim(),
       email: g.email.trim().toLowerCase(),
     }));
-    if (guardians.some((g) => !g.address || !g.email)) {
-      setGuardianSetupError("Please enter all 3 guardian wallet addresses and guardian emails.");
+    if (guardians.some((g) => !g.addressOrEns || !g.email)) {
+      setGuardianSetupError("Please enter all 3 guardian address/ENS values and guardian emails.");
       setGuardianSetupSuccess(null);
       return;
     }
@@ -266,14 +266,14 @@ export default function Home() {
       }
       setGuardianSetupCompleted(true);
       const saved = Array.isArray(data?.guardians)
-        ? (data.guardians as GuardianSetupInput[])
-        : guardians;
+        ? (data.guardians as Array<{ address?: string; ensName?: string; email?: string }>)
+        : [];
       setGuardianSetupInputs([
-        { address: saved[0]?.address ?? "", email: saved[0]?.email ?? "" },
-        { address: saved[1]?.address ?? "", email: saved[1]?.email ?? "" },
-        { address: saved[2]?.address ?? "", email: saved[2]?.email ?? "" },
+        { addressOrEns: saved[0]?.ensName ?? saved[0]?.address ?? guardians[0].addressOrEns, email: saved[0]?.email ?? guardians[0].email },
+        { addressOrEns: saved[1]?.ensName ?? saved[1]?.address ?? guardians[1].addressOrEns, email: saved[1]?.email ?? guardians[1].email },
+        { addressOrEns: saved[2]?.ensName ?? saved[2]?.address ?? guardians[2].addressOrEns, email: saved[2]?.email ?? guardians[2].email },
       ]);
-      setReceiverAddressInput((prev) => prev.trim() || (saved[0]?.address ?? ""));
+      setReceiverAddressInput((prev) => prev.trim() || (saved[0]?.ensName ?? saved[0]?.address ?? ""));
       setGuardianSetupSuccess("Guardian setup completed. You can now create wallet.");
     } catch (err) {
       setGuardianSetupError(err instanceof Error ? err.message : "Network or unknown error");
@@ -582,7 +582,7 @@ export default function Home() {
           </div>
           <div className="rounded-xl border border-[rgb(122_27_122_/_0.35)] bg-[linear-gradient(160deg,rgba(65,8,65,0.45),rgba(10,10,10,0.92))] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
           <p className="mb-4 text-sm text-[#BDA9CC]">
-            Before wallet creation, add exactly 3 guardian wallet addresses and guardian emails.
+            Before wallet creation, add exactly 3 guardian wallet identities and guardian emails.
           </p>
           <form onSubmit={handleSaveGuardianSetup} className="space-y-3">
             {guardianSetupInputs.map((value, index) => (
@@ -591,14 +591,14 @@ export default function Home() {
                   htmlFor={`guardian-setup-${index}`}
                   className="mb-1 block text-sm text-[#BDA9CC]"
                 >
-                  Guardian {index + 1} address
+                  Guardian {index + 1} address or ENS
                 </label>
                 <input
                   id={`guardian-setup-${index}`}
                   type="text"
-                  value={value.address}
-                  onChange={(e) => updateGuardianSetupInput(index, "address", e.target.value)}
-                  placeholder="0x..."
+                  value={value.addressOrEns}
+                  onChange={(e) => updateGuardianSetupInput(index, "addressOrEns", e.target.value)}
+                  placeholder="0x... or guardian.eth"
                   className="w-full rounded-lg border border-[rgb(122_27_122_/_0.45)] bg-[rgb(10_10_10_/_0.8)] px-3 py-2 text-[#EBDDF7] placeholder:text-[#9D86B2]"
                 />
                 <label
@@ -622,14 +622,14 @@ export default function Home() {
                 htmlFor="receiver-address"
                 className="mb-1 block text-sm text-[#BDA9CC]"
               >
-                Receiver address (optional, fallback destination)
+                Receiver address or ENS (optional, fallback destination)
               </label>
               <input
                 id="receiver-address"
                 type="text"
                 value={receiverAddressInput}
                 onChange={(e) => setReceiverAddressInput(e.target.value)}
-                placeholder="0x... (defaults to Guardian 1)"
+                placeholder="0x... or receiver.eth (defaults to Guardian 1)"
                 className="w-full rounded-lg border border-[rgb(122_27_122_/_0.45)] bg-[rgb(10_10_10_/_0.8)] px-3 py-2 text-[#EBDDF7] placeholder:text-[#9D86B2]"
               />
             </div>

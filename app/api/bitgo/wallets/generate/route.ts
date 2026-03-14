@@ -7,16 +7,13 @@ import { getRequiredUserGuardians, hasRequiredUserGuardians } from '@/lib/userGu
 import { saveKeyExportRecord } from '@/lib/keyExportDb';
 import { encryptBackupPrivateKey } from '@/lib/backupKeyCrypto';
 import { storeBackupKeyRecord } from '@/lib/backupKeyStore';
+import { parseAddressOrEns } from '@/lib/ens';
 
 const LABEL_MAX_LENGTH = 256;
 
 type BitGo = Awaited<ReturnType<typeof getBitGo>>;
 type PublicKeychain = { id: string; pub: string; encryptedPrv: string };
 type PrivateMaterial = { userPrv: string; backupPrv: string };
-
-function isValidEvmAddress(address: string): boolean {
-  return /^0x[a-fA-F0-9]{40}$/.test(address.trim());
-}
 
 function getWalletIdFromResult(result: { wallet: unknown }): string | null {
   const wallet = result.wallet;
@@ -117,7 +114,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const label = typeof body.label === 'string' ? body.label.trim() : '';
     const coin = typeof body.coin === 'string' ? body.coin.trim().toLowerCase() : getDefaultCoin();
-    const receiverAddress = typeof body.receiverAddress === 'string' ? body.receiverAddress.trim() : '';
+    const receiverAddressInput = typeof body.receiverAddress === 'string' ? body.receiverAddress.trim() : '';
 
     if (!label) {
       return NextResponse.json(
@@ -137,11 +134,18 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    if (receiverAddress && !isValidEvmAddress(receiverAddress)) {
-      return NextResponse.json(
-        { error: 'Invalid "receiverAddress". Must be a valid EVM address.' },
-        { status: 400 },
-      );
+    let resolvedReceiverAddress = '';
+    let resolvedReceiverEnsName: string | undefined;
+    if (receiverAddressInput) {
+      const parsedReceiver = await parseAddressOrEns(receiverAddressInput);
+      if (!parsedReceiver) {
+        return NextResponse.json(
+          { error: 'Invalid "receiverAddress". Enter a valid EVM address or resolvable ENS (.eth).' },
+          { status: 400 },
+        );
+      }
+      resolvedReceiverAddress = parsedReceiver.address;
+      resolvedReceiverEnsName = parsedReceiver.ensName;
     }
 
     const hasGuardians = await hasRequiredUserGuardians(identity.email);
@@ -152,7 +156,7 @@ export async function POST(request: Request) {
       );
     }
     const guardians = await getRequiredUserGuardians(identity.email);
-    const receiver = receiverAddress || guardians[0].address;
+    const receiver = resolvedReceiverAddress || guardians[0].address;
 
     const enterprise = process.env.ENTERPRISE_ID;
     const passphrase = process.env.WALLET_PASSPHRASE;
@@ -190,6 +194,7 @@ export async function POST(request: Request) {
         encryptedBackupPrv: encryptBackupPrivateKey(result.privateMaterial.backupPrv),
         guardians,
         receiverAddress: receiver,
+        receiverEnsName: resolvedReceiverEnsName,
       });
       const exportRecord = await saveKeyExportRecord({
         walletId,

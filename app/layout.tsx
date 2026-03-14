@@ -21,8 +21,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Smart Wallet Recovery",
-  description: "Guardian-approved wallet recovery workflows for team treasuries.",
+  title: "Rakshak",
+  description: "Rakshak is an orchestration layer over BitGo for institutional wallet operations and guardian-approved recovery.",
 };
 
 export default function RootLayout({

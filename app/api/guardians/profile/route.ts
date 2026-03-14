@@ -6,6 +6,7 @@ import {
   saveUserGuardians,
   type GuardianContact,
 } from '@/lib/userGuardiansDb';
+import { parseAddressOrEns } from '@/lib/ens';
 
 export async function GET(request: Request) {
   try {
@@ -41,19 +42,34 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const guardiansRaw = Array.isArray(body.guardians) ? body.guardians : [];
-    const guardians = guardiansRaw
-      .map((value: unknown): GuardianContact | null => {
+    const guardiansRaw: unknown[] = Array.isArray(body.guardians) ? body.guardians : [];
+    const guardiansResolved = await Promise.all(
+      guardiansRaw.map(async (value: unknown): Promise<GuardianContact | null> => {
         if (!value || typeof value !== 'object' || Array.isArray(value)) {
           return null;
         }
-        const maybe = value as { address?: unknown; email?: unknown };
-        const address = typeof maybe.address === 'string' ? maybe.address.trim() : '';
+        const maybe = value as { address?: unknown; addressOrEns?: unknown; email?: unknown };
+        const addressOrEns =
+          typeof maybe.addressOrEns === 'string'
+            ? maybe.addressOrEns.trim()
+            : typeof maybe.address === 'string'
+              ? maybe.address.trim()
+              : '';
         const email = typeof maybe.email === 'string' ? maybe.email.trim().toLowerCase() : '';
-        if (!address || !email) return null;
-        return { address, email };
-      })
-      .filter((value): value is GuardianContact => Boolean(value));
+        if (!addressOrEns || !email) return null;
+
+        const parsed = await parseAddressOrEns(addressOrEns);
+        if (!parsed) {
+          throw new Error(`Invalid guardian address/ENS: ${addressOrEns}`);
+        }
+        return {
+          address: parsed.address,
+          email,
+          ensName: parsed.ensName,
+        };
+      }),
+    );
+    const guardians = guardiansResolved.filter((value): value is GuardianContact => Boolean(value));
 
     const profile = await saveUserGuardians(identity.email, guardians);
     return NextResponse.json({
