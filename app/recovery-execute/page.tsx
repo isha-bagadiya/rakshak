@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
+
 const GAS_BUFFER_ETH = "0.00012";
 const GAS_BUFFER_WEI = BigInt("120000000000000");
 const ZERO_WEI = BigInt(0);
@@ -145,10 +146,9 @@ export default function RecoveryExecutePage() {
     setWalletBalanceLoading(true);
     setWalletBalanceError(null);
     try {
-      const res = await fetch(
-        `/api/bitgo/wallets/${encodeURIComponent(walletId)}/balance?coin=tarbeth`,
-        { headers: authHeaders },
-      );
+      const res = await fetch(`/api/bitgo/wallets/${encodeURIComponent(walletId)}/balance?coin=tarbeth`, {
+        headers: authHeaders,
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setWalletBalanceError(data?.error ?? `Request failed: ${res.status}`);
@@ -197,20 +197,17 @@ export default function RecoveryExecutePage() {
 
     setExecuting(true);
     try {
-      const res = await fetch(
-        `/api/recovery-requests/${encodeURIComponent(requestId.trim())}/execute`,
-        {
-          method: "POST",
-          headers: {
-            ...authHeaders,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            amountBaseUnits: resolvedAmountBaseUnits,
-            recipientAddress: recipientAddress.trim() || undefined,
-          }),
+      const res = await fetch(`/api/recovery-requests/${encodeURIComponent(requestId.trim())}/execute`, {
+        method: "POST",
+        headers: {
+          ...authHeaders,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          amountBaseUnits: resolvedAmountBaseUnits,
+          recipientAddress: recipientAddress.trim() || undefined,
+        }),
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setExecuteError(data?.error ?? `Request failed: ${res.status}`);
@@ -226,178 +223,236 @@ export default function RecoveryExecutePage() {
   }
 
   if (!ready) {
-    return <main className="mx-auto max-w-4xl px-4 py-10">Loading authentication...</main>;
+    return (
+      <main className="min-h-screen bg-black text-[#EBDDF7] selection:bg-[rgb(122_27_122)]">
+        <div
+          className="pointer-events-none fixed inset-0 z-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
+        <div className="relative z-10 mx-auto w-full max-w-5xl px-4 py-12 md:px-8">
+          <div className="rounded-2xl border border-[rgb(122_27_122_/_0.45)] bg-[rgb(65_8_65_/_0.3)] p-6 text-sm">
+            Loading authentication...
+          </div>
+        </div>
+      </main>
+    );
   }
+
   if (!authenticated) {
     return (
-      <main className="mx-auto max-w-4xl px-4 py-10 text-zinc-900 dark:text-zinc-100">
-        <h1 className="mb-4 text-2xl font-semibold">Recovery Transfer Execution</h1>
-        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">Sign in to execute approved recovery transfers.</p>
-        <button
-          type="button"
-          onClick={login}
-          className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-        >
-          Sign in
-        </button>
+      <main className="min-h-screen bg-black text-[#EBDDF7] selection:bg-[rgb(122_27_122)]">
+        <div
+          className="pointer-events-none fixed inset-0 z-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
+        <div className="relative z-10 mx-auto w-full max-w-5xl px-4 py-12 md:px-8">
+          <section className="rounded-2xl border border-[rgb(122_27_122_/_0.55)] bg-[linear-gradient(160deg,rgba(65,8,65,0.55),rgba(10,10,10,0.9))] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.35)] sm:p-8">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#D6BCE5]/75">Recovery</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#F3E9FA]">Recovery Transfer Execution</h1>
+            <p className="mt-3 max-w-xl text-sm text-[#C6B2D6]">Sign in to execute approved recovery transfers.</p>
+            <button
+              type="button"
+              onClick={login}
+              className="mt-6 rounded-md border border-[rgb(122_27_122_/_0.65)] bg-[rgb(122_27_122)] px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[rgb(101_19_101)]"
+            >
+              Sign In
+            </button>
+          </section>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10 text-zinc-900 dark:text-zinc-100">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Recovery Transfer (Backup Key + BitGo)</h1>
-        <div className="flex items-center gap-3">
-          <Link href="/demo-flow" className="text-sm text-blue-600 hover:underline">
-            Demo flow
-          </Link>
-          <Link href="/" className="text-sm text-blue-600 hover:underline">
-            Dashboard
-          </Link>
-        </div>
-      </div>
+    <main className="min-h-screen bg-black text-[#EBDDF7] selection:bg-[rgb(122_27_122)]">
+      <div
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+          backgroundSize: "80px 80px",
+        }}
+      />
 
-      <section className="mb-8 rounded border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium">Approved recovery requests</h2>
-          <button
-            type="button"
-            onClick={loadRequests}
-            disabled={loading}
-            className="rounded bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-          >
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-10 md:px-8 lg:px-10">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#D6BCE5]/75">Recovery Execution</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#F3E9FA]">Recovery Transfer (Backup Key + BitGo)</h1>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em]">
+            <Link
+              href="/demo-flow"
+              className="rounded-md border border-[rgb(122_27_122_/_0.55)] bg-[rgb(65_8_65_/_0.35)] px-3 py-2 text-[#EBDDF7] transition-colors hover:bg-[rgb(122_27_122_/_0.22)]"
+            >
+              Demo Flow
+            </Link>
+            <Link
+              href="/"
+              className="rounded-md border border-[rgb(122_27_122_/_0.55)] bg-[rgb(65_8_65_/_0.35)] px-3 py-2 text-[#EBDDF7] transition-colors hover:bg-[rgb(122_27_122_/_0.22)]"
+            >
+              Dashboard
+            </Link>
+          </div>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {!loading && approvedRequests.length === 0 && (
-          <p className="text-sm text-zinc-500">
-            No approved requests available. Create recovery request and collect guardian approvals first.
-          </p>
-        )}
-        {approvedRequests.length > 0 && (
-          <ul className="space-y-2">
-            {approvedRequests.map((request) => (
-              <li key={request.id} className="rounded border border-zinc-200 p-3 dark:border-zinc-700">
-                <p className="text-sm"><span className="font-medium">Request:</span> {request.id}</p>
-                <p className="text-sm"><span className="font-medium">Wallet:</span> {request.walletId}</p>
-                <p className="text-sm"><span className="font-medium">Reason:</span> {request.reason}</p>
-                <p className="text-sm"><span className="font-medium">Expires:</span> {request.expiresAt}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
-      <section className="rounded border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-3 text-lg font-medium">Execute recovery payout</h2>
-        <div className="mb-4 rounded border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium">Current wallet balance</p>
+        <section className="mb-8 rounded-2xl border border-[rgb(122_27_122_/_0.55)] bg-[linear-gradient(160deg,rgba(65,8,65,0.55),rgba(10,10,10,0.92))] p-5 shadow-[0_20px_55px_rgba(0,0,0,0.35)] sm:p-7">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-xl font-semibold tracking-tight text-[#F3E9FA]">Approved Recovery Requests</h2>
             <button
               type="button"
-              onClick={loadWalletBalance}
-              disabled={walletBalanceLoading || !selectedRequest?.walletId}
-              className="rounded bg-zinc-900 px-2 py-1 text-xs font-medium text-white disabled:opacity-50"
+              onClick={loadRequests}
+              disabled={loading}
+              className="rounded-md border border-[rgb(122_27_122_/_0.6)] bg-[rgb(65_8_65_/_0.45)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#EBDDF7] transition-colors disabled:opacity-50 hover:bg-[rgb(122_27_122_/_0.35)]"
             >
-              {walletBalanceLoading ? "Refreshing..." : "Refresh balance"}
+              {loading ? "Refreshing..." : "Refresh"}
             </button>
           </div>
-          <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
-            Selected request wallet: {selectedRequest?.walletId ?? "n/a"}
-          </p>
-          {walletBalanceError && <p className="text-sm text-red-600">{walletBalanceError}</p>}
-          {!walletBalanceLoading && !walletBalanceError && !walletBalance && (
-            <p className="text-sm text-zinc-500">Select approved request to load wallet balance.</p>
+
+          {error && <p className="text-sm text-rose-300">{error}</p>}
+          {!loading && approvedRequests.length === 0 && (
+            <p className="text-sm text-[#D6BCE5]/75">
+              No approved requests available. Create a recovery request and collect guardian approvals first.
+            </p>
           )}
-          {walletBalance && (
-            <div className="space-y-1 text-sm text-zinc-700 dark:text-zinc-200">
-              <p><span className="font-medium">Balance:</span> {formatWeiToEth(walletBalance.balanceString)}</p>
-              <p><span className="font-medium">Confirmed:</span> {formatWeiToEth(walletBalance.confirmedBalanceString)}</p>
-              <p><span className="font-medium">Spendable:</span> {formatWeiToEth(walletBalance.spendableBalanceString)}</p>
-              <p><span className="font-medium">Maximum spendable:</span> {formatWeiToEth(walletBalance.maximumSpendable)}</p>
-              <p><span className="font-medium">Gas buffer reserved:</span> {GAS_BUFFER_ETH} ETH</p>
-              <p><span className="font-medium">Receive address:</span> {walletBalance.receiveAddress ?? "n/a"}</p>
-            </div>
-          )}
-        </div>
-        <form onSubmit={handleExecute} className="space-y-3">
-          <div>
-            <label className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">Approved request ID</label>
-            <select
-              value={requestId}
-              onChange={(e) => setRequestId(e.target.value)}
-              className="w-full rounded border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-            >
-              <option value="">Select request</option>
+          {approvedRequests.length > 0 && (
+            <ul className="space-y-3">
               {approvedRequests.map((request) => (
-                <option key={request.id} value={request.id}>
-                  {request.id} ({request.walletId})
-                </option>
+                <li key={request.id} className="rounded-xl border border-[rgb(122_27_122_/_0.45)] bg-black/30 p-4">
+                  <p className="text-sm"><span className="text-[#C6B2D6]">Request:</span> {request.id}</p>
+                  <p className="text-sm"><span className="text-[#C6B2D6]">Wallet:</span> {request.walletId}</p>
+                  <p className="text-sm"><span className="text-[#C6B2D6]">Reason:</span> {request.reason}</p>
+                  <p className="text-sm"><span className="text-[#C6B2D6]">Expires:</span> {request.expiresAt}</p>
+                </li>
               ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">Amount (ETH)</label>
-            <input
-              type="text"
-              value={amountEth}
-              onChange={(e) => {
-                const next = e.target.value;
-                setAmountEth(next);
-                const wei = parseEthToWei(next);
-                if (wei) setAmountBaseUnits(wei);
-              }}
-              placeholder="0.00001"
-              className="w-full rounded border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">Amount (base units / wei)</label>
-            <input
-              type="text"
-              value={amountBaseUnits}
-              onChange={(e) => setAmountBaseUnits(e.target.value)}
-              placeholder="1000000000000000"
-              className="w-full rounded border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-            />
-            <p className="mt-1 text-xs text-zinc-500">
-              Auto-filled from ETH amount using 18 decimals.
-            </p>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">
-              Recipient address (optional, defaults to configured receiver)
-            </label>
-            <input
-              type="text"
-              value={recipientAddress}
-              onChange={(e) => setRecipientAddress(e.target.value)}
-              placeholder="0x..."
-              className="w-full rounded border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={executing}
-            className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {executing ? "Executing..." : "Execute recovery transfer"}
-          </button>
-          {isAmountGreaterThanSpendable && (
-            <p className="text-sm text-amber-700">
-              Entered amount is greater than max sendable after gas buffer ({GAS_BUFFER_ETH} ETH).
-            </p>
+            </ul>
           )}
-        </form>
-        {executeError && <p className="mt-3 text-sm text-red-600">{executeError}</p>}
-        {executeResult && (
-          <pre className="mt-3 max-h-80 overflow-auto rounded border border-zinc-200 bg-zinc-50 p-3 text-xs dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-            {JSON.stringify(executeResult, null, 2)}
-          </pre>
-        )}
-      </section>
+        </section>
+
+        <section className="rounded-2xl border border-[rgb(122_27_122_/_0.55)] bg-[linear-gradient(160deg,rgba(65,8,65,0.45),rgba(10,10,10,0.92))] p-5 shadow-[0_20px_55px_rgba(0,0,0,0.3)] sm:p-7">
+          <h2 className="text-xl font-semibold tracking-tight text-[#F3E9FA]">Execute Recovery Payout</h2>
+
+          <div className="mt-4 rounded-xl border border-[rgb(122_27_122_/_0.45)] bg-[rgb(65_8_65_/_0.25)] p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-[#F3E9FA]">Current Wallet Balance</p>
+              <button
+                type="button"
+                onClick={loadWalletBalance}
+                disabled={walletBalanceLoading || !selectedRequest?.walletId}
+                className="rounded-md border border-[rgb(122_27_122_/_0.6)] bg-[rgb(122_27_122)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition-colors disabled:opacity-50 hover:bg-[rgb(101_19_101)]"
+              >
+                {walletBalanceLoading ? "Refreshing..." : "Refresh Balance"}
+              </button>
+            </div>
+
+            <p className="mb-2 text-xs text-[#C6B2D6]">Selected request wallet: {selectedRequest?.walletId ?? "n/a"}</p>
+            {walletBalanceError && <p className="text-sm text-rose-300">{walletBalanceError}</p>}
+            {!walletBalanceLoading && !walletBalanceError && !walletBalance && (
+              <p className="text-sm text-[#D6BCE5]/75">Select an approved request to load wallet balance.</p>
+            )}
+            {walletBalance && (
+              <div className="grid gap-2 text-sm text-[#EBDDF7] sm:grid-cols-2">
+                <p><span className="text-[#C6B2D6]">Balance:</span> {formatWeiToEth(walletBalance.balanceString)}</p>
+                <p><span className="text-[#C6B2D6]">Confirmed:</span> {formatWeiToEth(walletBalance.confirmedBalanceString)}</p>
+                <p><span className="text-[#C6B2D6]">Spendable:</span> {formatWeiToEth(walletBalance.spendableBalanceString)}</p>
+                <p><span className="text-[#C6B2D6]">Maximum spendable:</span> {formatWeiToEth(walletBalance.maximumSpendable)}</p>
+                <p><span className="text-[#C6B2D6]">Gas buffer reserved:</span> {GAS_BUFFER_ETH} ETH</p>
+                <p><span className="text-[#C6B2D6]">Receive address:</span> {walletBalance.receiveAddress ?? "n/a"}</p>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={handleExecute} className="mt-5 space-y-4">
+            <div>
+              <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.2em] text-[#D6BCE5]/80">Approved Request ID</label>
+              <select
+                value={requestId}
+                onChange={(e) => setRequestId(e.target.value)}
+                className="w-full rounded-md border border-[rgb(122_27_122_/_0.55)] bg-black/40 px-3 py-2.5 text-sm text-[#F3E9FA] outline-none transition-colors focus:border-[rgb(122_27_122)]"
+              >
+                <option value="">Select request</option>
+                {approvedRequests.map((request) => (
+                  <option key={request.id} value={request.id}>
+                    {request.id} ({request.walletId})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.2em] text-[#D6BCE5]/80">Amount (ETH)</label>
+                <input
+                  type="text"
+                  value={amountEth}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setAmountEth(next);
+                    const wei = parseEthToWei(next);
+                    if (wei) setAmountBaseUnits(wei);
+                  }}
+                  placeholder="0.00001"
+                  className="w-full rounded-md border border-[rgb(122_27_122_/_0.55)] bg-black/40 px-3 py-2.5 text-sm text-[#F3E9FA] placeholder:text-[#C6B2D6]/60 outline-none transition-colors focus:border-[rgb(122_27_122)]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.2em] text-[#D6BCE5]/80">Amount (Wei)</label>
+                <input
+                  type="text"
+                  value={amountBaseUnits}
+                  onChange={(e) => setAmountBaseUnits(e.target.value)}
+                  placeholder="1000000000000000"
+                  className="w-full rounded-md border border-[rgb(122_27_122_/_0.55)] bg-black/40 px-3 py-2.5 text-sm text-[#F3E9FA] placeholder:text-[#C6B2D6]/60 outline-none transition-colors focus:border-[rgb(122_27_122)]"
+                />
+              </div>
+            </div>
+
+            <p className="-mt-2 text-xs text-[#C6B2D6]">Auto-filled from ETH amount using 18 decimals.</p>
+
+            <div>
+              <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.2em] text-[#D6BCE5]/80">
+                Recipient Address (Optional; defaults to configured receiver)
+              </label>
+              <input
+                type="text"
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+                placeholder="0x..."
+                className="w-full rounded-md border border-[rgb(122_27_122_/_0.55)] bg-black/40 px-3 py-2.5 text-sm text-[#F3E9FA] placeholder:text-[#C6B2D6]/60 outline-none transition-colors focus:border-[rgb(122_27_122)]"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={executing}
+              className="rounded-md border border-[rgb(122_27_122_/_0.65)] bg-[rgb(122_27_122)] px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors disabled:opacity-50 hover:bg-[rgb(101_19_101)]"
+            >
+              {executing ? "Executing..." : "Execute Recovery Transfer"}
+            </button>
+
+            {isAmountGreaterThanSpendable && (
+              <p className="text-sm text-amber-300">
+                Entered amount is greater than max sendable after gas buffer ({GAS_BUFFER_ETH} ETH).
+              </p>
+            )}
+          </form>
+
+          {executeError && <p className="mt-3 text-sm text-rose-300">{executeError}</p>}
+          {executeResult && (
+            <pre className="mt-3 max-h-80 overflow-auto rounded-xl border border-[rgb(122_27_122_/_0.45)] bg-black/35 p-4 text-xs text-[#EBDDF7]">
+              {JSON.stringify(executeResult, null, 2)}
+            </pre>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
